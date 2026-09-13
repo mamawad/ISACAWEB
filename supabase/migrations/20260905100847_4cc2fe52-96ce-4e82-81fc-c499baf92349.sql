@@ -1,0 +1,1 @@
+ALTER TABLE public.chapter_signups ADD COLUMN IF NOT EXISTS notified_at timestamp with time zone;

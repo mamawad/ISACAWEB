@@ -1,0 +1,1 @@
+alter table public.chapter_signups add column if not exists isaca_id text;

@@ -1,0 +1,1 @@
+alter table public.chapter_signups add column if not exists college text, add column if not exists program text;

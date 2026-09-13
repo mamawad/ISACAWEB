@@ -1,0 +1,1 @@
+delete from public.chapter_signups where email = 'e2e.test@alfaisal.edu';

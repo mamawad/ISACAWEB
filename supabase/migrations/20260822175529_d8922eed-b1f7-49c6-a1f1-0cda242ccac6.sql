@@ -1,0 +1,1 @@
+ALTER TABLE public.chapter_signups ADD COLUMN IF NOT EXISTS preferred_team text, ADD COLUMN IF NOT EXISTS preferred_role text;
