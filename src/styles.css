@@ -551,3 +551,138 @@
 @utility section-tint {
   background-color: color-mix(in oklab, var(--brand-teal) 3%, var(--background));
 }
+
+/*
+ * /manage workspace theme. Deliberately not the marketing site: a warm paper
+ * ground, ink text, and an electric violet + lime accent pair. Scoped to the
+ * .manage-theme wrapper so every shadcn token flips without touching the
+ * public pages.
+ */
+.manage-theme {
+  color-scheme: light;
+
+  --background: oklch(0.982 0.006 85);
+  --foreground: oklch(0.21 0.025 290);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.962 0.01 85);
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--foreground);
+
+  --brand-teal: oklch(0.55 0.22 292);
+  --brand-green: oklch(0.8 0.2 130);
+  --brand-blue: oklch(0.7 0.19 30);
+  --navy: oklch(0.3 0.06 290);
+  --navy-deep: oklch(0.18 0.03 290);
+
+  --primary: oklch(0.55 0.22 292);
+  --primary-foreground: oklch(0.99 0 0);
+  --accent: oklch(0.93 0.05 292);
+  --accent-foreground: oklch(0.35 0.16 292);
+
+  --secondary: oklch(0.95 0.02 292);
+  --secondary-foreground: oklch(0.3 0.06 290);
+  --muted: oklch(0.955 0.01 85);
+  --muted-foreground: oklch(0.5 0.025 290);
+
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0 0 0 / 8%);
+  --input: oklch(0 0 0 / 12%);
+  --ring: oklch(0.55 0.22 292);
+
+  --sidebar: oklch(0.97 0.01 85);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: oklch(0.93 0.05 292);
+  --sidebar-accent-foreground: oklch(0.35 0.16 292);
+  --sidebar-border: oklch(0 0 0 / 8%);
+  --sidebar-ring: var(--primary);
+
+  --radius: 0.9rem;
+
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Utilities the workspace leans on */
+.manage-theme .eyebrow {
+  color: var(--primary);
+}
+.manage-theme .text-gradient {
+  background-image: linear-gradient(
+    92deg,
+    oklch(0.55 0.22 292),
+    oklch(0.62 0.2 320),
+    oklch(0.7 0.19 30)
+  );
+}
+.manage-theme .glass {
+  background: oklch(1 0 0 / 72%);
+  border: 1px solid oklch(0 0 0 / 7%);
+}
+.manage-theme .glass-strong {
+  background: oklch(1 0 0 / 92%);
+  border: 1px solid oklch(0 0 0 / 8%);
+}
+.manage-theme .card-glow {
+  background: var(--surface);
+  border: 1px solid oklch(0 0 0 / 7%);
+  box-shadow: 0 1px 2px oklch(0 0 0 / 4%);
+}
+.manage-theme .card-glow:hover {
+  box-shadow: 0 20px 50px -28px oklch(0.55 0.22 292 / 45%);
+}
+.manage-theme .btn-primary {
+  color: oklch(0.99 0 0);
+  background-image: linear-gradient(135deg, oklch(0.55 0.22 292), oklch(0.62 0.2 320));
+  box-shadow:
+    inset 0 0 0 1px oklch(1 0 0 / 20%),
+    0 12px 28px -12px oklch(0.55 0.22 292 / 70%);
+}
+.manage-theme .btn-ghost {
+  color: var(--foreground);
+  background: oklch(0 0 0 / 3%);
+  border: 1px solid oklch(0 0 0 / 10%);
+}
+.manage-theme .btn-ghost:hover {
+  background: oklch(0 0 0 / 6%);
+  border-color: oklch(0.55 0.22 292 / 50%);
+}
+.manage-theme .tilt-glare {
+  background: radial-gradient(
+    480px circle at var(--gx, 50%) var(--gy, 50%),
+    oklch(0.55 0.22 292 / 8%),
+    transparent 62%
+  );
+}
+.manage-theme ::-webkit-scrollbar-thumb {
+  background: oklch(0 0 0 / 14%);
+  border-color: var(--background);
+}
+
+/* Dotted paper grid for the workspace background */
+.manage-paper {
+  background-image: radial-gradient(oklch(0 0 0 / 7%) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Kanban column drop target highlight */
+.board-column.is-over {
+  outline: 2px dashed oklch(0.55 0.22 292 / 55%);
+  outline-offset: -2px;
+  background: oklch(0.55 0.22 292 / 5%);
+}
+
+/* Timeline bars */
+.gantt-bar {
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s;
+}
+.gantt-bar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -10px oklch(0 0 0 / 40%);
+}

@@ -12,3 +12,7 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Private workspace
+User-agent: *
+Disallow: /manage

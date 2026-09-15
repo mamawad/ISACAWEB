@@ -13,10 +13,24 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as JoinRouteImport } from './routes/join'
+import { Route as ManageRouteImport } from './routes/manage'
 import { Route as MissionRouteImport } from './routes/mission'
 import { Route as TeamRouteImport } from './routes/team'
+import { Route as ManageIndexRouteImport } from './routes/manage/index'
+import { Route as ManageLoginRouteImport } from './routes/manage/login'
+import { Route as ManagePeopleRouteImport } from './routes/manage/people'
+import { Route as ManageProfileRouteImport } from './routes/manage/profile'
+import { Route as ManageRolesRouteImport } from './routes/manage/roles'
+import { Route as ManageTasksRouteImport } from './routes/manage/tasks'
 import { Route as ApiPublicSignupsExportRouteImport } from './routes/api/public/signups-export'
+import { Route as ManageProjectsIndexRouteImport } from './routes/manage/projects/index'
+import { Route as ManageProjectsKeyRouteImport } from './routes/manage/projects/$key'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
+import { Route as ManageProjectsKeyIndexRouteImport } from './routes/manage/projects/$key/index'
+import { Route as ManageProjectsKeyDriveRouteImport } from './routes/manage/projects/$key/drive'
+import { Route as ManageProjectsKeyListRouteImport } from './routes/manage/projects/$key/list'
+import { Route as ManageProjectsKeySettingsRouteImport } from './routes/manage/projects/$key/settings'
+import { Route as ManageProjectsKeyTimelineRouteImport } from './routes/manage/projects/$key/timeline'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -38,6 +52,11 @@ const JoinRoute = JoinRouteImport.update({
   path: '/join',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageRoute = ManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MissionRoute = MissionRouteImport.update({
   id: '/mission',
   path: '/mission',
@@ -48,10 +67,50 @@ const TeamRoute = TeamRouteImport.update({
   path: '/team',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageIndexRoute = ManageIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManageLoginRoute = ManageLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManagePeopleRoute = ManagePeopleRouteImport.update({
+  id: '/people',
+  path: '/people',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManageProfileRoute = ManageProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManageRolesRoute = ManageRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManageTasksRoute = ManageTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => ManageRoute,
+} as any)
 const ApiPublicSignupsExportRoute = ApiPublicSignupsExportRouteImport.update({
   id: '/api/public/signups-export',
   path: '/api/public/signups-export',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ManageProjectsIndexRoute = ManageProjectsIndexRouteImport.update({
+  id: '/projects/',
+  path: '/projects/',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManageProjectsKeyRoute = ManageProjectsKeyRouteImport.update({
+  id: '/projects/$key',
+  path: '/projects/$key',
+  getParentRoute: () => ManageRoute,
 } as any)
 const LovableEmailTransactionalPreviewRoute =
   LovableEmailTransactionalPreviewRouteImport.update({
@@ -59,16 +118,57 @@ const LovableEmailTransactionalPreviewRoute =
     path: '/lovable/email/transactional/preview',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ManageProjectsKeyIndexRoute = ManageProjectsKeyIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ManageProjectsKeyRoute,
+} as any)
+const ManageProjectsKeyDriveRoute = ManageProjectsKeyDriveRouteImport.update({
+  id: '/drive',
+  path: '/drive',
+  getParentRoute: () => ManageProjectsKeyRoute,
+} as any)
+const ManageProjectsKeyListRoute = ManageProjectsKeyListRouteImport.update({
+  id: '/list',
+  path: '/list',
+  getParentRoute: () => ManageProjectsKeyRoute,
+} as any)
+const ManageProjectsKeySettingsRoute =
+  ManageProjectsKeySettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => ManageProjectsKeyRoute,
+  } as any)
+const ManageProjectsKeyTimelineRoute =
+  ManageProjectsKeyTimelineRouteImport.update({
+    id: '/timeline',
+    path: '/timeline',
+    getParentRoute: () => ManageProjectsKeyRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/events': typeof EventsRoute
   '/join': typeof JoinRoute
+  '/manage': typeof ManageRouteWithChildren
   '/mission': typeof MissionRoute
   '/team': typeof TeamRoute
+  '/manage/login': typeof ManageLoginRoute
+  '/manage/people': typeof ManagePeopleRoute
+  '/manage/profile': typeof ManageProfileRoute
+  '/manage/roles': typeof ManageRolesRoute
+  '/manage/tasks': typeof ManageTasksRoute
+  '/manage/': typeof ManageIndexRoute
   '/api/public/signups-export': typeof ApiPublicSignupsExportRoute
+  '/manage/projects/$key': typeof ManageProjectsKeyRouteWithChildren
+  '/manage/projects/': typeof ManageProjectsIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/manage/projects/$key/drive': typeof ManageProjectsKeyDriveRoute
+  '/manage/projects/$key/list': typeof ManageProjectsKeyListRoute
+  '/manage/projects/$key/settings': typeof ManageProjectsKeySettingsRoute
+  '/manage/projects/$key/timeline': typeof ManageProjectsKeyTimelineRoute
+  '/manage/projects/$key/': typeof ManageProjectsKeyIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -77,8 +177,20 @@ export interface FileRoutesByTo {
   '/join': typeof JoinRoute
   '/mission': typeof MissionRoute
   '/team': typeof TeamRoute
+  '/manage/login': typeof ManageLoginRoute
+  '/manage/people': typeof ManagePeopleRoute
+  '/manage/profile': typeof ManageProfileRoute
+  '/manage/roles': typeof ManageRolesRoute
+  '/manage/tasks': typeof ManageTasksRoute
+  '/manage': typeof ManageIndexRoute
   '/api/public/signups-export': typeof ApiPublicSignupsExportRoute
+  '/manage/projects': typeof ManageProjectsIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/manage/projects/$key/drive': typeof ManageProjectsKeyDriveRoute
+  '/manage/projects/$key/list': typeof ManageProjectsKeyListRoute
+  '/manage/projects/$key/settings': typeof ManageProjectsKeySettingsRoute
+  '/manage/projects/$key/timeline': typeof ManageProjectsKeyTimelineRoute
+  '/manage/projects/$key': typeof ManageProjectsKeyIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,10 +198,24 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/events': typeof EventsRoute
   '/join': typeof JoinRoute
+  '/manage': typeof ManageRouteWithChildren
   '/mission': typeof MissionRoute
   '/team': typeof TeamRoute
+  '/manage/login': typeof ManageLoginRoute
+  '/manage/people': typeof ManagePeopleRoute
+  '/manage/profile': typeof ManageProfileRoute
+  '/manage/roles': typeof ManageRolesRoute
+  '/manage/tasks': typeof ManageTasksRoute
+  '/manage/': typeof ManageIndexRoute
   '/api/public/signups-export': typeof ApiPublicSignupsExportRoute
+  '/manage/projects/$key': typeof ManageProjectsKeyRouteWithChildren
+  '/manage/projects/': typeof ManageProjectsIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/manage/projects/$key/drive': typeof ManageProjectsKeyDriveRoute
+  '/manage/projects/$key/list': typeof ManageProjectsKeyListRoute
+  '/manage/projects/$key/settings': typeof ManageProjectsKeySettingsRoute
+  '/manage/projects/$key/timeline': typeof ManageProjectsKeyTimelineRoute
+  '/manage/projects/$key/': typeof ManageProjectsKeyIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,10 +224,24 @@ export interface FileRouteTypes {
     | '/admin'
     | '/events'
     | '/join'
+    | '/manage'
     | '/mission'
     | '/team'
+    | '/manage/login'
+    | '/manage/people'
+    | '/manage/profile'
+    | '/manage/roles'
+    | '/manage/tasks'
+    | '/manage/'
     | '/api/public/signups-export'
+    | '/manage/projects/$key'
+    | '/manage/projects/'
     | '/lovable/email/transactional/preview'
+    | '/manage/projects/$key/drive'
+    | '/manage/projects/$key/list'
+    | '/manage/projects/$key/settings'
+    | '/manage/projects/$key/timeline'
+    | '/manage/projects/$key/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -110,18 +250,44 @@ export interface FileRouteTypes {
     | '/join'
     | '/mission'
     | '/team'
+    | '/manage/login'
+    | '/manage/people'
+    | '/manage/profile'
+    | '/manage/roles'
+    | '/manage/tasks'
+    | '/manage'
     | '/api/public/signups-export'
+    | '/manage/projects'
     | '/lovable/email/transactional/preview'
+    | '/manage/projects/$key/drive'
+    | '/manage/projects/$key/list'
+    | '/manage/projects/$key/settings'
+    | '/manage/projects/$key/timeline'
+    | '/manage/projects/$key'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/events'
     | '/join'
+    | '/manage'
     | '/mission'
     | '/team'
+    | '/manage/login'
+    | '/manage/people'
+    | '/manage/profile'
+    | '/manage/roles'
+    | '/manage/tasks'
+    | '/manage/'
     | '/api/public/signups-export'
+    | '/manage/projects/$key'
+    | '/manage/projects/'
     | '/lovable/email/transactional/preview'
+    | '/manage/projects/$key/drive'
+    | '/manage/projects/$key/list'
+    | '/manage/projects/$key/settings'
+    | '/manage/projects/$key/timeline'
+    | '/manage/projects/$key/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -129,6 +295,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   EventsRoute: typeof EventsRoute
   JoinRoute: typeof JoinRoute
+  ManageRoute: typeof ManageRouteWithChildren
   MissionRoute: typeof MissionRoute
   TeamRoute: typeof TeamRoute
   ApiPublicSignupsExportRoute: typeof ApiPublicSignupsExportRoute
@@ -165,6 +332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage': {
+      id: '/manage'
+      path: '/manage'
+      fullPath: '/manage'
+      preLoaderRoute: typeof ManageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mission': {
       id: '/mission'
       path: '/mission'
@@ -179,12 +353,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage/': {
+      id: '/manage/'
+      path: '/'
+      fullPath: '/manage/'
+      preLoaderRoute: typeof ManageIndexRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/login': {
+      id: '/manage/login'
+      path: '/login'
+      fullPath: '/manage/login'
+      preLoaderRoute: typeof ManageLoginRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/people': {
+      id: '/manage/people'
+      path: '/people'
+      fullPath: '/manage/people'
+      preLoaderRoute: typeof ManagePeopleRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/profile': {
+      id: '/manage/profile'
+      path: '/profile'
+      fullPath: '/manage/profile'
+      preLoaderRoute: typeof ManageProfileRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/roles': {
+      id: '/manage/roles'
+      path: '/roles'
+      fullPath: '/manage/roles'
+      preLoaderRoute: typeof ManageRolesRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/tasks': {
+      id: '/manage/tasks'
+      path: '/tasks'
+      fullPath: '/manage/tasks'
+      preLoaderRoute: typeof ManageTasksRouteImport
+      parentRoute: typeof ManageRoute
+    }
     '/api/public/signups-export': {
       id: '/api/public/signups-export'
       path: '/api/public/signups-export'
       fullPath: '/api/public/signups-export'
       preLoaderRoute: typeof ApiPublicSignupsExportRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/manage/projects/': {
+      id: '/manage/projects/'
+      path: '/projects'
+      fullPath: '/manage/projects/'
+      preLoaderRoute: typeof ManageProjectsIndexRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/projects/$key': {
+      id: '/manage/projects/$key'
+      path: '/projects/$key'
+      fullPath: '/manage/projects/$key'
+      preLoaderRoute: typeof ManageProjectsKeyRouteImport
+      parentRoute: typeof ManageRoute
     }
     '/lovable/email/transactional/preview': {
       id: '/lovable/email/transactional/preview'
@@ -193,14 +423,94 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage/projects/$key/': {
+      id: '/manage/projects/$key/'
+      path: '/'
+      fullPath: '/manage/projects/$key/'
+      preLoaderRoute: typeof ManageProjectsKeyIndexRouteImport
+      parentRoute: typeof ManageProjectsKeyRoute
+    }
+    '/manage/projects/$key/drive': {
+      id: '/manage/projects/$key/drive'
+      path: '/drive'
+      fullPath: '/manage/projects/$key/drive'
+      preLoaderRoute: typeof ManageProjectsKeyDriveRouteImport
+      parentRoute: typeof ManageProjectsKeyRoute
+    }
+    '/manage/projects/$key/list': {
+      id: '/manage/projects/$key/list'
+      path: '/list'
+      fullPath: '/manage/projects/$key/list'
+      preLoaderRoute: typeof ManageProjectsKeyListRouteImport
+      parentRoute: typeof ManageProjectsKeyRoute
+    }
+    '/manage/projects/$key/settings': {
+      id: '/manage/projects/$key/settings'
+      path: '/settings'
+      fullPath: '/manage/projects/$key/settings'
+      preLoaderRoute: typeof ManageProjectsKeySettingsRouteImport
+      parentRoute: typeof ManageProjectsKeyRoute
+    }
+    '/manage/projects/$key/timeline': {
+      id: '/manage/projects/$key/timeline'
+      path: '/timeline'
+      fullPath: '/manage/projects/$key/timeline'
+      preLoaderRoute: typeof ManageProjectsKeyTimelineRouteImport
+      parentRoute: typeof ManageProjectsKeyRoute
+    }
   }
 }
+
+interface ManageProjectsKeyRouteChildren {
+  ManageProjectsKeyDriveRoute: typeof ManageProjectsKeyDriveRoute
+  ManageProjectsKeyListRoute: typeof ManageProjectsKeyListRoute
+  ManageProjectsKeySettingsRoute: typeof ManageProjectsKeySettingsRoute
+  ManageProjectsKeyTimelineRoute: typeof ManageProjectsKeyTimelineRoute
+  ManageProjectsKeyIndexRoute: typeof ManageProjectsKeyIndexRoute
+}
+
+const ManageProjectsKeyRouteChildren: ManageProjectsKeyRouteChildren = {
+  ManageProjectsKeyDriveRoute: ManageProjectsKeyDriveRoute,
+  ManageProjectsKeyListRoute: ManageProjectsKeyListRoute,
+  ManageProjectsKeySettingsRoute: ManageProjectsKeySettingsRoute,
+  ManageProjectsKeyTimelineRoute: ManageProjectsKeyTimelineRoute,
+  ManageProjectsKeyIndexRoute: ManageProjectsKeyIndexRoute,
+}
+
+const ManageProjectsKeyRouteWithChildren =
+  ManageProjectsKeyRoute._addFileChildren(ManageProjectsKeyRouteChildren)
+
+interface ManageRouteChildren {
+  ManageLoginRoute: typeof ManageLoginRoute
+  ManagePeopleRoute: typeof ManagePeopleRoute
+  ManageProfileRoute: typeof ManageProfileRoute
+  ManageRolesRoute: typeof ManageRolesRoute
+  ManageTasksRoute: typeof ManageTasksRoute
+  ManageIndexRoute: typeof ManageIndexRoute
+  ManageProjectsKeyRoute: typeof ManageProjectsKeyRouteWithChildren
+  ManageProjectsIndexRoute: typeof ManageProjectsIndexRoute
+}
+
+const ManageRouteChildren: ManageRouteChildren = {
+  ManageLoginRoute: ManageLoginRoute,
+  ManagePeopleRoute: ManagePeopleRoute,
+  ManageProfileRoute: ManageProfileRoute,
+  ManageRolesRoute: ManageRolesRoute,
+  ManageTasksRoute: ManageTasksRoute,
+  ManageIndexRoute: ManageIndexRoute,
+  ManageProjectsKeyRoute: ManageProjectsKeyRouteWithChildren,
+  ManageProjectsIndexRoute: ManageProjectsIndexRoute,
+}
+
+const ManageRouteWithChildren =
+  ManageRoute._addFileChildren(ManageRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   EventsRoute: EventsRoute,
   JoinRoute: JoinRoute,
+  ManageRoute: ManageRouteWithChildren,
   MissionRoute: MissionRoute,
   TeamRoute: TeamRoute,
   ApiPublicSignupsExportRoute: ApiPublicSignupsExportRoute,

@@ -149,6 +149,21 @@ function PageTransition({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isWorkspace = pathname === "/manage" || pathname.startsWith("/manage/");
+
+  // The private workspace has its own chrome and theme; keep the marketing
+  // header/footer/FAB out of it entirely.
+  if (isWorkspace) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <div className="manage-theme min-h-screen">
+          <Outlet />
+        </div>
+        <Toaster />
+      </QueryClientProvider>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
