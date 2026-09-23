@@ -7,6 +7,8 @@ import type { Pointer } from "./use-scene";
 const TEAL = "#1fb6c9";
 const GREEN = "#6cc04a";
 const BLUE = "#2a8fd6";
+const KSA_GREEN = "#00a651";
+const KSA_GOLD = "#e8c872";
 
 /**
  * The ISACA mark: a 3×3 grid of open rings running from light blue (top-left)
@@ -71,6 +73,8 @@ type SceneProps = {
   pointer: RefObject<Pointer>;
   scroll: RefObject<number>;
   onReady?: (() => void) | undefined;
+  /** National Day palette for the orbits, lights and particles. */
+  festive?: boolean | undefined;
 };
 
 function Ring({ spec, scroll }: { spec: RingSpec; scroll: RefObject<number> }) {
@@ -122,7 +126,9 @@ function Ring({ spec, scroll }: { spec: RingSpec; scroll: RefObject<number> }) {
 
 const ORBIT_NODES = [0, 1, 2].map((i) => (i / 3) * Math.PI * 2);
 
-function Centerpiece({ pointer, scroll, onReady }: SceneProps) {
+function Centerpiece({ pointer, scroll, onReady, festive }: SceneProps) {
+  const orbitA = festive ? KSA_GREEN : TEAL;
+  const orbitB = festive ? KSA_GOLD : GREEN;
   const specs = useRingSpecs();
   const outer = useRef<THREE.Group>(null);
   const inner = useRef<THREE.Group>(null);
@@ -180,12 +186,12 @@ function Centerpiece({ pointer, scroll, onReady }: SceneProps) {
       <group ref={orbit} rotation={[Math.PI / 2.2, 0, 0]}>
         <mesh>
           <torusGeometry args={[2.45, 0.012, 12, 220]} />
-          <meshBasicMaterial color={TEAL} transparent opacity={0.35} />
+          <meshBasicMaterial color={orbitA} transparent opacity={festive ? 0.55 : 0.35} />
         </mesh>
         {ORBIT_NODES.map((a, idx) => (
           <mesh key={idx} position={[Math.cos(a) * 2.45, Math.sin(a) * 2.45, 0]}>
             <sphereGeometry args={[0.055, 12, 12]} />
-            <meshBasicMaterial color={idx === 1 ? GREEN : TEAL} />
+            <meshBasicMaterial color={idx === 1 ? orbitB : orbitA} />
           </mesh>
         ))}
       </group>
@@ -193,7 +199,7 @@ function Centerpiece({ pointer, scroll, onReady }: SceneProps) {
       {/* Second, wider ring on a different axis */}
       <mesh ref={orbit2} rotation={[Math.PI / 2.6, 0.5, 0.4]}>
         <torusGeometry args={[2.95, 0.008, 12, 220]} />
-        <meshBasicMaterial color={GREEN} transparent opacity={0.22} />
+        <meshBasicMaterial color={orbitB} transparent opacity={festive ? 0.4 : 0.22} />
       </mesh>
 
       {/* Faint wireframe halo far behind */}
@@ -211,7 +217,7 @@ type HeroSceneProps = SceneProps & { active: boolean };
  * The homepage hero scene. Mounted client-only via lazy import; the wrapper
  * (Hero3D) owns pointer/scroll tracking and the static fallback.
  */
-export default function HeroScene({ active, pointer, scroll, onReady }: HeroSceneProps) {
+export default function HeroScene({ active, pointer, scroll, onReady, festive }: HeroSceneProps) {
   return (
     <Canvas
       dpr={[1, 1.75]}
@@ -228,16 +234,32 @@ export default function HeroScene({ active, pointer, scroll, onReady }: HeroScen
       <ambientLight intensity={0.5} />
       <directionalLight position={[4, 6, 5]} intensity={2.2} />
       <pointLight position={[-5, -2, 4]} intensity={35} color={TEAL} distance={16} />
-      <pointLight position={[5, 3, -4]} intensity={30} color={GREEN} distance={16} />
+      <pointLight
+        position={[5, 3, -4]}
+        intensity={30}
+        color={festive ? KSA_GREEN : GREEN}
+        distance={16}
+      />
       <spotLight position={[0, 6, 3]} angle={0.6} penumbra={1} intensity={60} color="#bfefff" />
-      <Centerpiece pointer={pointer} scroll={scroll} onReady={onReady} />
+      <Centerpiece pointer={pointer} scroll={scroll} onReady={onReady} festive={festive} />
+      {festive ? (
+        <Sparkles
+          count={90}
+          scale={[10, 6, 4]}
+          size={3.2}
+          speed={0.45}
+          opacity={0.8}
+          color={KSA_GOLD}
+          noise={0.8}
+        />
+      ) : null}
       <Sparkles
         count={140}
         scale={[11, 7, 5]}
         size={2.4}
         speed={0.3}
         opacity={0.55}
-        color="#8fdcea"
+        color={festive ? "#bff5d4" : "#8fdcea"}
         noise={0.6}
       />
     </Canvas>

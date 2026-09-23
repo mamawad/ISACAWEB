@@ -19,6 +19,7 @@ import { ScrollProgress } from "@/components/fx/scroll-progress";
 import { GhostCta, PrimaryCta } from "@/components/fx/cta";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE } from "@/lib/site";
+import { isNationalDaySeason } from "@/lib/national-day";
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -107,7 +108,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Reem+Kufi:wght@500;600;700&display=swap",
       },
     ],
   }),
@@ -118,8 +119,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const nationalDay = isNationalDaySeason();
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={nationalDay ? "dark national-day" : "dark"}>
       <head>
         <HeadContent />
       </head>

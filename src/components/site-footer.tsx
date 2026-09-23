@@ -2,6 +2,10 @@ import type { ComponentType } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Instagram, Linkedin, Mail } from "lucide-react";
 import { SITE, mailto } from "@/lib/site";
+import { NATIONAL_DAY } from "@/lib/national-day";
+import { SaduBand } from "@/components/national-day/sadu-band";
+import { Palm } from "@/components/national-day/palm";
+import { useNationalDay } from "@/components/national-day/use-national-day";
 
 const LINKS = [
   { to: "/mission", label: "Mission" },
@@ -27,8 +31,35 @@ const SOCIAL_ICONS: Record<SocialLabel, ComponentType<{ className?: string | und
 };
 
 export function SiteFooter() {
+  const { active: nationalDay } = useNationalDay();
   return (
     <footer className="relative overflow-hidden border-t border-white/10 bg-navy-deep">
+      {nationalDay ? (
+        <>
+          <SaduBand />
+          <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-4 pt-10 sm:flex-row sm:px-6">
+            <div className="flex items-center gap-4">
+              <Palm className="palm-sway h-14 w-auto" />
+              <div>
+                <p
+                  lang="ar"
+                  dir="rtl"
+                  className="font-arabic text-2xl text-[var(--ksa-green-bright)]"
+                >
+                  {NATIONAL_DAY.greetingAr} {NATIONAL_DAY.editionAr}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  The chapter celebrates {NATIONAL_DAY.edition} years of the Kingdom, united on 23
+                  September 1932.
+                </p>
+              </div>
+            </div>
+            <p className="font-mono text-[11px] tracking-[0.2em] text-[var(--ksa-gold)] uppercase">
+              23 · 09 · {NATIONAL_DAY.date.slice(0, 4)}
+            </p>
+          </div>
+        </>
+      ) : null}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 -bottom-[6vw] text-center font-display text-[24vw] leading-none font-extrabold tracking-tighter text-white/[0.025] select-none"

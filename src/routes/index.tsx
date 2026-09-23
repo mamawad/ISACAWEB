@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
@@ -26,6 +26,10 @@ import { CERTIFICATIONS, CERT_NOTE } from "@/lib/certifications";
 import { TEAMS } from "@/lib/teams";
 import { FALLBACK_TEAM_ICON, TEAM_ICONS } from "@/lib/team-icons";
 import { SITE } from "@/lib/site";
+import { NATIONAL_DAY } from "@/lib/national-day";
+import { useNationalDay } from "@/components/national-day/use-national-day";
+import { Celebration } from "@/components/national-day/celebration";
+import { NationalDaySection } from "@/components/national-day/section";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -124,6 +128,7 @@ function Index() {
     <>
       <Hero />
       <MarqueeStrip />
+      <NationalDaySection />
       <WhyIsaca />
       <TwoChapters />
       <CertificationExplorer />
@@ -138,6 +143,17 @@ function Index() {
 
 function Hero() {
   const reduce = useReducedMotion();
+  const { active: nationalDay } = useNationalDay();
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Feed the cursor position to the .spotlight layer as CSS variables.
+  function onPointerMove(e: React.PointerEvent<HTMLElement>) {
+    const el = sectionRef.current;
+    if (!el || e.pointerType !== "mouse") return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--sx", `${e.clientX - r.left}px`);
+    el.style.setProperty("--sy", `${e.clientY - r.top}px`);
+  }
   const rise = (delay: number) => ({
     initial: reduce ? false : { opacity: 0, y: 26 },
     animate: { opacity: 1, y: 0 },
@@ -145,14 +161,28 @@ function Hero() {
   });
 
   return (
-    <section className="relative flex min-h-[100svh] items-center overflow-hidden">
+    <section
+      ref={sectionRef}
+      onPointerMove={onPointerMove}
+      className="relative flex min-h-[100svh] items-center overflow-hidden"
+    >
       <div className="aurora" aria-hidden="true">
         <span />
         <span />
         <span />
       </div>
       <div className="grid-lines absolute inset-0" aria-hidden="true" />
-      <Hero3D />
+      <div className="spotlight pointer-events-none absolute inset-0" aria-hidden="true" />
+      {nationalDay ? (
+        <span
+          aria-hidden="true"
+          className="nd-numeral pointer-events-none absolute right-[-4vw] bottom-[-3vw] hidden text-[30vw] md:block"
+        >
+          {NATIONAL_DAY.editionAr}
+        </span>
+      ) : null}
+      <Hero3D festive={nationalDay} />
+      {nationalDay ? <Celebration /> : null}
       {/* Keep the copy legible where the logo sits behind it on phones */}
       <div
         className="pointer-events-none absolute inset-0 bg-linear-to-b from-background/70 via-background/20 to-transparent md:hidden"
@@ -165,8 +195,29 @@ function Hero() {
 
       <div className="relative mx-auto w-full max-w-6xl px-4 pt-32 pb-28 sm:px-6 md:pt-36">
         <div className="max-w-2xl">
+          {nationalDay ? (
+            <motion.div
+              {...rise(0)}
+              className="mb-4 inline-flex items-center gap-3 rounded-full border border-[color-mix(in_oklab,var(--ksa-gold)_45%,transparent)] bg-[color-mix(in_oklab,var(--ksa-green)_35%,transparent)] py-1.5 pr-4 pl-1.5 backdrop-blur"
+            >
+              <span
+                lang="ar"
+                className="font-arabic grid h-7 min-w-7 place-items-center rounded-full bg-[var(--ksa-white)] px-2 text-sm leading-none text-[var(--ksa-green)]"
+              >
+                {NATIONAL_DAY.editionAr}
+              </span>
+              <span className="text-sm font-semibold text-white">Happy Saudi National Day</span>
+              <span
+                lang="ar"
+                dir="rtl"
+                className="font-arabic hidden text-sm text-[var(--ksa-gold)] sm:inline"
+              >
+                {NATIONAL_DAY.greetingAr}
+              </span>
+            </motion.div>
+          ) : null}
           <motion.div
-            {...rise(0)}
+            {...rise(nationalDay ? 0.04 : 0)}
             className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground backdrop-blur"
           >
             <span className="relative flex h-1.5 w-1.5">

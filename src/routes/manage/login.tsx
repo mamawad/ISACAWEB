@@ -5,6 +5,8 @@ import { ArrowRight, Eye, EyeOff, Loader2, LockKeyhole } from "lucide-react";
 import { manageLogin } from "@/lib/pm/auth.functions";
 import { errorMessage, inputClass } from "@/components/manage/fields";
 import { cn } from "@/lib/utils";
+import { NationalDayRibbon } from "@/components/national-day/ribbon";
+import { useNationalDay } from "@/components/national-day/use-national-day";
 
 type LoginSearch = { next?: string };
 
@@ -22,6 +24,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const router = useRouter();
   const reduce = useReducedMotion();
+  const { active: nationalDay } = useNationalDay();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
@@ -55,6 +58,7 @@ function LoginPage() {
 
   return (
     <div className="manage-paper relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-16">
+      {nationalDay ? <NationalDayRibbon compact className="absolute inset-x-0 top-0 z-10" /> : null}
       <div className="aurora" aria-hidden="true">
         <span style={{ opacity: 0.35 }} />
         <span style={{ opacity: 0.3 }} />

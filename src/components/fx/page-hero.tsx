@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { NATIONAL_DAY } from "@/lib/national-day";
+import { SaduBand } from "@/components/national-day/sadu-band";
+import { useNationalDay } from "@/components/national-day/use-national-day";
 
 type PageHeroProps = {
   eyebrow: string;
@@ -17,6 +20,7 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 /** Shared inner-page header: aurora backdrop, grid, staggered title reveal. */
 export function PageHero({ eyebrow, title, lead, aside, children, className }: PageHeroProps) {
   const reduce = useReducedMotion();
+  const { active: nationalDay } = useNationalDay();
   const rise = (delay: number) => ({
     initial: reduce ? false : { opacity: 0, y: 26 },
     animate: { opacity: 1, y: 0 },
@@ -36,6 +40,17 @@ export function PageHero({ eyebrow, title, lead, aside, children, className }: P
         <span />
       </div>
       <div className="grid-lines absolute inset-0" aria-hidden="true" />
+      {nationalDay ? (
+        <>
+          <span
+            aria-hidden="true"
+            className="nd-numeral pointer-events-none absolute -right-6 bottom-6 text-[34vw] sm:text-[22rem]"
+          >
+            {NATIONAL_DAY.editionAr}
+          </span>
+          <SaduBand className="absolute inset-x-0 bottom-0" height={14} />
+        </>
+      ) : null}
       <div className="relative mx-auto grid w-full max-w-6xl items-center gap-10 px-4 sm:px-6 md:grid-cols-[1.2fr_0.8fr]">
         <div>
           <motion.p className="eyebrow" {...rise(0)}>
