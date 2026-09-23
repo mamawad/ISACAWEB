@@ -93,7 +93,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "A student-led community at Alfaisal University for IT governance, risk, cybersecurity, and audit. Join us.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "/brand/isaca-lockup.png" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
@@ -149,11 +148,12 @@ function PageTransition({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isPresentation = pathname === "/openevent";
   const isWorkspace = pathname === "/manage" || pathname.startsWith("/manage/");
 
   // The private workspace has its own chrome and theme; keep the marketing
-  // header/footer/FAB out of it entirely.
+  // header/footer/contact button out of it entirely.
   if (isWorkspace) {
     return (
       <QueryClientProvider client={queryClient}>
@@ -167,24 +167,32 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[80] focus:rounded-full focus:bg-brand-teal focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-navy-deep"
-      >
-        Skip to content
-      </a>
-      <ScrollProgress />
-      <SiteHeader />
-      <div className="flex min-h-screen flex-col">
-        <main id="main" className="flex-1">
-          <PageTransition>
-            <Outlet />
-          </PageTransition>
+      {isPresentation ? (
+        <main id="main">
+          <Outlet />
         </main>
-        <SiteFooter />
-      </div>
-      <ContactFab />
-      <Toaster />
+      ) : (
+        <>
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[80] focus:rounded-full focus:bg-brand-teal focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-navy-deep"
+          >
+            Skip to content
+          </a>
+          <ScrollProgress />
+          <SiteHeader />
+          <div className="flex min-h-screen flex-col">
+            <main id="main" className="flex-1">
+              <PageTransition>
+                <Outlet />
+              </PageTransition>
+            </main>
+            <SiteFooter />
+          </div>
+          <ContactFab />
+          <Toaster />
+        </>
+      )}
     </QueryClientProvider>
   );
 }

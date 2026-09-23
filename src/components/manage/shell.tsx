@@ -3,6 +3,8 @@ import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-ro
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
+  CalendarClock,
+  ChevronDown,
   CheckSquare2,
   Command as CommandIcon,
   Eye,
@@ -30,11 +32,84 @@ import {
 import { cn } from "@/lib/utils";
 import { manageLogout, stopImpersonating } from "@/lib/pm/auth.functions";
 import { listProjects } from "@/lib/pm/projects.functions";
+import { INTERVIEW_TRACKS } from "@/lib/pm/interview-teams";
 import { useCan, useManage } from "./manage-context";
 import { Avatar } from "./avatar";
 import { CommandPalette } from "./command-palette";
 
 type NavItem = { to: string; label: string; icon: LucideIcon; exact?: boolean; show?: boolean };
+
+function SidebarInterviews({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [open, setOpen] = useState(pathname.startsWith("/manage/interviews"));
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+          pathname.startsWith("/manage/interviews")
+            ? "text-primary"
+            : "text-muted-foreground hover:bg-black/[0.04] hover:text-foreground",
+        )}
+      >
+        <CalendarClock className="h-4 w-4" />
+        <span>Interviews</span>
+        <ChevronDown className={cn("ml-auto h-4 w-4 transition-transform", open && "rotate-180")} />
+      </button>
+      {open ? (
+        <div className="mt-0.5 ml-4 flex flex-col gap-0.5 border-l border-black/10 pl-2">
+          <Link
+            to="/manage/interviews"
+            onClick={onNavigate}
+            className={cn(
+              "rounded-lg px-3 py-2 text-sm transition-colors",
+              pathname === "/manage/interviews"
+                ? "bg-black/[0.05] text-foreground"
+                : "text-muted-foreground hover:bg-black/[0.04] hover:text-foreground",
+            )}
+          >
+            All interviews
+          </Link>
+          {INTERVIEW_TRACKS.map((t) => {
+            const active = pathname === `/manage/interviews/${t.slug}`;
+            return (
+              <Link
+                key={t.slug}
+                to="/manage/interviews/$track"
+                params={{ track: t.slug }}
+                onClick={onNavigate}
+                className={cn(
+                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                  active
+                    ? "bg-black/[0.05] text-foreground"
+                    : "text-muted-foreground hover:bg-black/[0.04] hover:text-foreground",
+                )}
+              >
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-sm"
+                  style={{ backgroundColor: t.color }}
+                />
+                <span className="truncate">{t.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function InterviewsSection({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
+  const can = useCan();
+  if (!can("interviews.view")) return null;
+  return (
+    <div className="mt-0.5">
+      <SidebarInterviews onNavigate={onNavigate} />
+    </div>
+  );
+}
 
 function SidebarNav({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
   const can = useCan();
@@ -183,7 +258,7 @@ function UserMenu() {
           </span>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56">
+      <DropdownMenuContent align="start" className="manage-theme w-56">
         <DropdownMenuLabel className="font-mono text-xs">@{ctx.user.username}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
@@ -247,6 +322,7 @@ export function ManageShell({ children }: { children: ReactNode }) {
       </div>
       <div className="mt-6 px-1">
         <SidebarNav onNavigate={onNavigate} />
+        <InterviewsSection onNavigate={onNavigate} />
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-1">
         <SidebarProjects onNavigate={onNavigate} />
@@ -275,7 +351,7 @@ export function ManageShell({ children }: { children: ReactNode }) {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <SheetContent side="left" className="w-72 bg-sidebar p-3">
+            <SheetContent side="left" className="manage-theme w-72 bg-sidebar p-3 text-foreground">
               <SheetTitle className="sr-only">Workspace navigation</SheetTitle>
               {sidebar(() => setMenuOpen(false))}
             </SheetContent>

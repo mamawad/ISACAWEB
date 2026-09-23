@@ -9,6 +9,10 @@ import {
   verifyAdminPassword,
   fetchAllSignups,
   fetchTakenSlots,
+  getSetting,
+  setSetting,
+  createInterviewInvite,
+  markInvited,
 } from "./signups.server";
 import {
   checkLoginLockout,
@@ -118,25 +122,29 @@ export const deleteSignup = createServerFn({ method: "POST" })
  * Public: booked interview slots so the form can grey them out. Returns only
  * ISO timestamps — no personal data.
  */
-export const getTakenInterviewSlots = createServerFn({ method: "GET" }).handler(async () => {
-  return { slots: await fetchTakenSlots() };
-});
+export const getTakenInterviewSlots = createServerFn({ method: "GET" }).handler(
+  async () => {
+    return { slots: await fetchTakenSlots() };
+  },
+);
 
 /**
  * Admin-only: the tokenised live-feed URL to paste into Excel / Sheets.
  * Session-gated so the token never leaks to anonymous visitors.
  */
-export const getLiveExportUrl = createServerFn({ method: "POST" }).handler(async () => {
-  if (!(await isAdminUnlocked())) return { ok: false as const, url: "" };
-  const token = process.env["EXPORT_TOKEN"];
-  if (!token) return { ok: false as const, url: "" };
-  const host = getRequestHeader("x-forwarded-host") ?? getRequestHeader("host") ?? "";
-  const proto = getRequestHeader("x-forwarded-proto") ?? "https";
-  return {
-    ok: true as const,
-    url: `${proto}://${host}/api/public/signups-export?key=${token}`,
-  };
-});
+export const getLiveExportUrl = createServerFn({ method: "POST" }).handler(
+  async () => {
+    if (!(await isAdminUnlocked())) return { ok: false as const, url: "" };
+    const token = process.env["EXPORT_TOKEN"];
+    if (!token) return { ok: false as const, url: "" };
+    const host = getRequestHeader("x-forwarded-host") ?? getRequestHeader("host") ?? "";
+    const proto = getRequestHeader("x-forwarded-proto") ?? "https";
+    return {
+      ok: true as const,
+      url: `${proto}://${host}/api/public/signups-export?key=${token}`,
+    };
+  },
+);
 
 /**
  * Admin-only: resend the alert email for applications that were never
@@ -159,6 +167,77 @@ export const resendSignupAlerts = createServerFn({ method: "POST" })
       const ok = await resendSignupAlert(row);
       if (ok) sent++;
       else failed++;
+    }
+
+    return { ok: true as const, sent, failed, signups: await fetchAllSignups() };
+  });
+
+/** Admin: list the interviewer email addresses added to every invite. */
+export const getInterviewerEmails = createServerFn({ method: "GET" }).handler(
+  async () => {
+    if (!(await isAdminUnlocked())) return { ok: false as const, emails: [] };
+    const emails = (await getSetting<string[]>("interviewer_emails")) ?? [];
+    return { ok: true as const, emails };
+  },
+);
+
+/** Admin: save the interviewer email addresses added to every invite. */
+export const saveInterviewerEmails = createServerFn({ method: "POST" })
+  .inputValidator((data: { emails: string[] }) => data)
+  .handler(async ({ data }) => {
+    if (!(await isAdminUnlocked())) return { ok: false as const };
+    const cleaned = Array.from(
+      new Set(
+        data.emails
+          .map((e) => e.trim().toLowerCase())
+          .filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)),
+      ),
+    );
+    await setSetting("interviewer_emails", cleaned);
+    return { ok: true as const, emails: cleaned };
+  });
+
+/** Admin: whether the Microsoft Outlook connection is configured. */
+export const getInviteConnectionStatus = createServerFn({ method: "GET" }).handler(
+  async () => {
+    if (!(await isAdminUnlocked())) return { ok: false as const, connected: false };
+    const connected = !!(process.env["LOVABLE_API_KEY"] && process.env["MICROSOFT_OUTLOOK_API_KEY"]);
+    return { ok: true as const, connected };
+  },
+);
+
+/**
+ * Admin-only: create a Teams calendar invite for one interview, or all
+ * interviews that haven't been invited yet. Only runs when you click the
+ * button — never automatically.
+ */
+export const sendInterviewInvites = createServerFn({ method: "POST" })
+  .inputValidator((data: { id?: string }) => data ?? {})
+  .handler(async ({ data }) => {
+    if (!(await isAdminUnlocked())) {
+      return { ok: false as const, sent: 0, failed: 0, signups: [] };
+    }
+    const interviewerEmails = (await getSetting<string[]>("interviewer_emails")) ?? [];
+    const all = await fetchAllSignups();
+    const targets = data.id
+      ? all.filter((r) => r.id === data.id && r.interview_slot)
+      : all.filter((r) => r.interview_slot && !r.invite_sent_at);
+
+    let sent = 0;
+    let failed = 0;
+    for (const row of targets) {
+      try {
+        const created = await createInterviewInvite(row, interviewerEmails);
+        if (created) {
+          await markInvited(row.id);
+          sent++;
+        } else {
+          failed++;
+        }
+      } catch (err) {
+        console.error("[chapter-signup] invite failed:", err);
+        failed++;
+      }
     }
 
     return { ok: true as const, sent, failed, signups: await fetchAllSignups() };

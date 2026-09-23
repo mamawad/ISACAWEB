@@ -277,7 +277,7 @@ function DrivePage() {
       )}
 
       <Dialog open={linkOpen} onOpenChange={setLinkOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="manage-theme max-h-[90vh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-display">Pin a link</DialogTitle>
             <DialogDescription>Keep shared drives and documents one click away.</DialogDescription>
@@ -288,7 +288,6 @@ function DrivePage() {
                 className={inputClass}
                 value={linkName}
                 onChange={(e) => setLinkName(e.target.value)}
-                placeholder="Event photos (Google Drive)"
               />
             </Field>
             <Field label="URL" required>
@@ -296,7 +295,6 @@ function DrivePage() {
                 className={inputClass}
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
-                placeholder="https://drive.google.com/…"
               />
             </Field>
             {linkError ? <p className="text-sm font-medium text-destructive">{linkError}</p> : null}

@@ -57,12 +57,13 @@ export const listProjectTasks = createServerFn({ method: "GET" })
     const ctx = await requireContext();
     const db = await pmDb();
     const rights = await requireProjectView(db, ctx, data.project_id);
-    const { data: rows } = await db
+    const { data: rows, error } = await db
       .from("pm_tasks")
       .select(TASK_COLS)
       .eq("project_id", data.project_id)
       .order("position")
       .order("created_at");
+    if (error) fail(error.message);
     const tasks = ((rows ?? []) as Record<string, unknown>[]).map(mapTask) as PmTask[];
     return { tasks, rights: rights satisfies ProjectRights };
   });

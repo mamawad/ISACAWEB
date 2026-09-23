@@ -82,11 +82,23 @@ export const PERMISSIONS = [
     label: "View as another member",
     description: "Open the workspace exactly as another member sees it.",
   },
+  {
+    key: "interviews.view",
+    group: "Interviews",
+    label: "See the interview schedule",
+    description: "Open the interview tracks, the schedule and applicant details.",
+  },
+  {
+    key: "interviews.feedback",
+    group: "Interviews",
+    label: "Write interview feedback",
+    description: "Save scores, decisions and notes after an interview.",
+  },
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number]["key"];
 
-export const PERMISSION_GROUPS = ["Projects", "Tasks", "Drive", "People"] as const;
+export const PERMISSION_GROUPS = ["Projects", "Tasks", "Drive", "People", "Interviews"] as const;
 
 export type ProjectAccess = "lead" | "editor" | "member" | "viewer";
 export const PROJECT_ACCESS: { key: ProjectAccess; label: string; description: string }[] = [
@@ -122,6 +134,29 @@ export const TASK_TYPES: { key: TaskType; label: string }[] = [
   { key: "task", label: "Task" },
   { key: "bug", label: "Bug" },
 ];
+
+/** Hierarchy: epic > story > task > bug (subtask). */
+export const PARENT_TYPE: Record<TaskType, TaskType | null> = {
+  epic: null,
+  story: "epic",
+  task: "story",
+  bug: "task",
+};
+
+/** Label used for a task type's parent field. */
+export const PARENT_LABEL: Record<TaskType, string> = {
+  epic: "Parent",
+  story: "Epic",
+  task: "Story",
+  bug: "Task",
+};
+
+export const CHILD_TYPE: Record<TaskType, TaskType | null> = {
+  epic: "story",
+  story: "task",
+  task: "bug",
+  bug: null,
+};
 
 export const AVATAR_COLORS = [
   "#7c3aed",

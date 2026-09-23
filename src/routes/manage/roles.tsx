@@ -245,7 +245,7 @@ function RoleDialog({
 
   return (
     <Dialog open={role !== null} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="manage-theme max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <form onSubmit={submit}>
           <DialogHeader>
             <DialogTitle className="font-display">
@@ -263,7 +263,6 @@ function RoleDialog({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={existing?.is_system}
-                  placeholder="Events coordinator"
                   required
                 />
               </Field>
@@ -272,7 +271,6 @@ function RoleDialog({
                   className={inputClass}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Runs the event calendar"
                 />
               </Field>
             </div>

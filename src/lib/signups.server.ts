@@ -2,7 +2,9 @@ import { createClient } from "@supabase/supabase-js";
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { Database } from "@/integrations/supabase/types";
 import { resolveProgram } from "./signups.schema";
+import { labelSlotRangeISO } from "./interview-slots";
 import type { SignupInput, SignupRow } from "./signups.schema";
+
 
 /**
  * Server-local Supabase client using the publishable (anon) key.
@@ -19,7 +21,9 @@ function getPublishableClient() {
   // "Expected 3 parts in JWT; got 1".
   const customFetch: typeof fetch = (input, init) => {
     const headers = new Headers(
-      typeof Request !== "undefined" && input instanceof Request ? input.headers : undefined,
+      typeof Request !== "undefined" && input instanceof Request
+        ? input.headers
+        : undefined,
     );
     if (init?.headers) {
       new Headers(init.headers).forEach((v, k) => headers.set(k, v));
@@ -42,11 +46,15 @@ function getPublishableClient() {
  * id when the Data API hands it back, so the alert email can be stamped
  * against it.
  */
-export async function createSignupRecord(input: SignupInput): Promise<string | null> {
+export async function createSignupRecord(
+  input: SignupInput,
+): Promise<string | null> {
   const supabase = getPublishableClient();
   const program = resolveProgram(input);
   const interviewSlot =
-    input.interview_slot && input.interview_slot.length > 0 ? input.interview_slot : null;
+    input.interview_slot && input.interview_slot.length > 0
+      ? input.interview_slot
+      : null;
   const { error } = await supabase.from("chapter_signups").insert({
     full_name: input.full_name,
     email: input.email,
@@ -102,6 +110,8 @@ async function markNotified(id: string): Promise<void> {
   }
 }
 
+
+
 /**
  * Best-effort email notification to the chapter's backend-only address.
  *
@@ -111,7 +121,10 @@ async function markNotified(id: string): Promise<void> {
  * never loses the application. Suppressed recipients are expected and
  * silently skipped.
  */
-export async function notifySignup(input: SignupInput, rowId?: string | null): Promise<boolean> {
+export async function notifySignup(
+  input: SignupInput,
+  rowId?: string | null,
+): Promise<boolean> {
   const to = process.env["NOTIFICATION_EMAIL"];
   if (!to) return false;
 
@@ -119,7 +132,9 @@ export async function notifySignup(input: SignupInput, rowId?: string | null): P
   const { labelSlotRangeISO } = await import("./interview-slots");
 
   const program = resolveProgram(input);
-  const interviewLabel = input.interview_slot ? labelSlotRangeISO(input.interview_slot) : undefined;
+  const interviewLabel = input.interview_slot
+    ? labelSlotRangeISO(input.interview_slot)
+    : undefined;
 
   const idempotencyKey = rowId
     ? `signup-alert-${rowId}`
@@ -215,17 +230,123 @@ export async function fetchAllSignups(): Promise<SignupRow[]> {
   const { data, error } = await supabaseAdmin
     .from("chapter_signups")
     .select(
-      "id, full_name, email, student_id, isaca_id, college, program, major, year_of_study, preferred_team, preferred_role, phone, reason, interview_slot, created_at, notified_at",
+      "id, full_name, email, student_id, isaca_id, college, program, major, year_of_study, preferred_team, preferred_role, phone, reason, interview_slot, created_at, notified_at, invite_sent_at",
     )
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as SignupRow[];
 }
 
+const OUTLOOK_GATEWAY = "https://connector-gateway.lovable.dev/microsoft_outlook";
+
+/**
+ * Create a Teams online-meeting calendar event in the admin's Outlook for an
+ * interview slot, with the applicant + saved interviewers as attendees.
+ * Microsoft sends each attendee a calendar invite they can RSVP. Returns
+ * true on success. Throws on auth/connector failures so the caller can
+ * surface a hint.
+ */
+export async function createInterviewInvite(
+  row: SignupRow,
+  interviewerEmails: string[],
+): Promise<boolean> {
+  const apiKey = process.env["LOVABLE_API_KEY"];
+  const connectorKey = process.env["MICROSOFT_OUTLOOK_API_KEY"];
+  if (!apiKey || !connectorKey) {
+    throw new Error("Microsoft Outlook is not connected yet.");
+  }
+  if (!row.interview_slot) return false;
+
+  const start = new Date(row.interview_slot);
+  const end = new Date(start.getTime() + 10 * 60_000);
+  const toISO = (d: Date) => d.toISOString();
+  const riyadhLabel = labelSlotRangeISO(row.interview_slot);
+
+  const attendees = [
+    { emailAddress: { address: row.email, name: row.full_name }, type: "required" as const },
+    ...interviewerEmails
+      .filter((e) => e.toLowerCase() !== row.email.toLowerCase())
+      .map((e) => ({ emailAddress: { address: e }, type: "required" as const })),
+  ];
+
+  const body = {
+    subject: `ISACA interview — ${row.full_name}`,
+    body: {
+      contentType: "HTML",
+      content: `<p>Hi ${row.full_name},</p><p>This is your interview with the ISACA Student Chapter at Alfaisal University.</p><p><b>Time (Riyadh):</b> ${riyadhLabel}<br/><b>Where:</b> Microsoft Teams (join via the meeting link in this invite).</p><p>Please join a couple of minutes early. We look forward to meeting you.</p>`,
+    },
+    start: { dateTime: toISO(start), timeZone: "Arabian Standard Time" },
+    end: { dateTime: toISO(end), timeZone: "Arabian Standard Time" },
+    location: { displayName: "Microsoft Teams" },
+    isOnlineMeeting: true,
+    onlineMeetingProvider: "teams",
+    attendees,
+    allowNewTimeProposals: false,
+    responseRequested: true,
+  };
+
+  const res = await fetch(`${OUTLOOK_GATEWAY}/me/events`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      "X-Connection-Api-Key": connectorKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text();
+    console.error(
+      `[chapter-signup] outlook invite failed [${res.status}]: ${errorBody}`,
+    );
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Microsoft connection needs reconnecting.");
+    }
+    throw new Error(`Could not create the invite (${res.status}).`);
+  }
+  return true;
+}
+
+/** Read a JSON setting value from the admin-only settings store. */
+export async function getSetting<T>(key: string): Promise<T | null> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("chapter_settings")
+    .select("value")
+    .eq("key", key)
+    .maybeSingle();
+  return (data?.value as T) ?? null;
+}
+
+/** Write a JSON setting value to the admin-only settings store. */
+export async function setSetting<T>(key: string, value: T): Promise<void> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin
+    .from("chapter_settings")
+    .upsert({ key, value: value as never, updated_at: new Date().toISOString() });
+}
+
+/** Stamp a row as invited once its calendar event has been created. */
+export async function markInvited(id: string): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin
+      .from("chapter_signups")
+      .update({ invite_sent_at: new Date().toISOString() })
+      .eq("id", id);
+  } catch (err) {
+    console.error("[chapter-signup] could not stamp invite_sent_at:", err);
+  }
+}
+
 /** Delete a signup row by id. Admin only — caller must gate on the session. */
 export async function deleteSignupRecord(id: string): Promise<void> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { error } = await supabaseAdmin.from("chapter_signups").delete().eq("id", id);
+  const { error } = await supabaseAdmin
+    .from("chapter_signups")
+    .delete()
+    .eq("id", id);
   if (error) throw error;
 }
 

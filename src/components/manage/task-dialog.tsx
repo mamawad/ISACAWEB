@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import { createTask, listProjectTasks, type CreateTaskInput } from "@/lib/pm/tasks.functions";
 import {
+  CHILD_TYPE,
+  PARENT_LABEL,
+  PARENT_TYPE,
   PRIORITIES,
   STATUSES,
   TASK_TYPES,
@@ -53,13 +56,18 @@ export function CreateTaskDialog({
     queryFn: () => listProjectTasks({ data: { project_id: project.id } }),
     enabled: open,
   });
-  const epics = (tasks.data?.tasks ?? []).filter((t) => t.type === "epic");
+  const allTasks = tasks.data?.tasks ?? [];
+  const parentType = PARENT_TYPE[type];
+  const parentOptions = parentType ? allTasks.filter((t) => t.type === parentType) : [];
+  const presetParent = preset.parent_id
+    ? allTasks.find((t) => t.id === preset.parent_id)
+    : undefined;
 
   useEffect(() => {
     if (!open) return;
     setTitle("");
     setDescription("");
-    setType(preset.parent_id ? "task" : "task");
+    setType("task");
     setStatus((preset.status as TaskStatus | undefined) ?? "todo");
     setPriority("medium");
     setAssignee(null);
@@ -69,6 +77,20 @@ export function CreateTaskDialog({
     setLabels("");
     setError(null);
   }, [open, preset.status, preset.parent_id]);
+
+  // When opened from a parent task, default to the matching child type.
+  useEffect(() => {
+    if (!open || !presetParent) return;
+    const child = CHILD_TYPE[presetParent.type];
+    if (child) setType(child);
+  }, [open, presetParent]);
+
+  // Drop a parent that no longer matches the selected type.
+  useEffect(() => {
+    if (!parent) return;
+    const current = allTasks.find((t) => t.id === parent);
+    if (current && current.type !== parentType) setParent("");
+  }, [parent, parentType, allTasks]);
 
   const create = useMutation({
     mutationFn: (payload: CreateTaskInput) => createTask({ data: payload }),
@@ -110,7 +132,7 @@ export function CreateTaskDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="manage-theme max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <form onSubmit={submit}>
           <DialogHeader>
             <DialogTitle className="font-display">
@@ -126,7 +148,6 @@ export function CreateTaskDialog({
                 className={inputClass}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Design the workshop poster"
                 autoFocus
                 required
               />
@@ -158,13 +179,19 @@ export function CreateTaskDialog({
               <Field label="Assignee">
                 <UserSelect value={assignee} onChange={setAssignee} users={people} />
               </Field>
-              <Field label="Epic" hint={type === "epic" ? "n/a" : undefined}>
+              <Field
+                label={PARENT_LABEL[type]}
+                hint={parentType ? undefined : "Epics sit at the top"}
+              >
                 <SelectField
                   value={parent}
                   onChange={setParent}
-                  disabled={type === "epic"}
-                  allowEmpty="No epic"
-                  options={epics.map((e) => ({ value: e.id, label: `${e.key} ${e.title}` }))}
+                  disabled={!parentType}
+                  allowEmpty={`No ${parentType ?? "parent"}`}
+                  options={parentOptions.map((e) => ({
+                    value: e.id,
+                    label: `${e.key} ${e.title}`,
+                  }))}
                 />
               </Field>
             </div>
@@ -192,7 +219,6 @@ export function CreateTaskDialog({
                 className={inputClass}
                 value={labels}
                 onChange={(e) => setLabels(e.target.value)}
-                placeholder="design, social"
               />
             </Field>
             <Field label="Description">
@@ -200,7 +226,6 @@ export function CreateTaskDialog({
                 className={cn(inputClass, "h-28 resize-y py-2")}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Context, acceptance criteria, links…"
               />
             </Field>
             {error ? <p className="text-sm font-medium text-destructive">{error}</p> : null}

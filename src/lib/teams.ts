@@ -16,7 +16,8 @@ export const ANY_ROLE = "Any role in this team";
 export const TEAMS: Team[] = [
   {
     title: "Public Relations",
-    description: "Shapes how the chapter looks and sounds to the outside world.",
+    description:
+      "Shapes how the chapter looks and sounds to the outside world.",
     directors: [
       {
         title: "Director of Public Relations",
@@ -32,11 +33,13 @@ export const TEAMS: Team[] = [
     members: [
       {
         title: "Graphic Design Member",
-        responsibility: "Designs flyers, social posts, and presentation decks for chapter events.",
+        responsibility:
+          "Designs flyers, social posts, and presentation decks for chapter events.",
       },
       {
         title: "Photography Member",
-        responsibility: "Captures photos at chapter events and meetings for socials and recaps.",
+        responsibility:
+          "Captures photos at chapter events and meetings for socials and recaps.",
       },
       {
         title: "Video Editing Member",
@@ -47,11 +50,13 @@ export const TEAMS: Team[] = [
   },
   {
     title: "Academic & Technical Programs",
-    description: "Runs the workshops, labs, and technical sessions members actually show up for.",
+    description:
+      "Runs the workshops, labs, and technical sessions members actually show up for.",
     directors: [
       {
         title: "Director of Academic & Technical Programs",
-        responsibility: "Plans and runs workshops and hands-on technical training sessions.",
+        responsibility:
+          "Plans and runs workshops and hands-on technical training sessions.",
       },
       {
         title: "Associate Director of Academic & Technical Programs",
@@ -62,7 +67,8 @@ export const TEAMS: Team[] = [
     members: [
       {
         title: "Workshop Facilitator Member",
-        responsibility: "Helps prepare and run hands-on labs and technical workshops.",
+        responsibility:
+          "Helps prepare and run hands-on labs and technical workshops.",
       },
       {
         title: "Research & Innovation Member",
@@ -90,11 +96,13 @@ export const TEAMS: Team[] = [
     members: [
       {
         title: "Web Development Member",
-        responsibility: "Builds and maintains the chapter website and web tools.",
+        responsibility:
+          "Builds and maintains the chapter website and web tools.",
       },
       {
         title: "App Development Member",
-        responsibility: "Works on mobile or internal app projects for the chapter.",
+        responsibility:
+          "Works on mobile or internal app projects for the chapter.",
       },
     ],
   },
@@ -121,7 +129,8 @@ export const TEAMS: Team[] = [
       },
       {
         title: "Event Logistics Member",
-        responsibility: "Helps plan and run events on the day, from venue setup to registration.",
+        responsibility:
+          "Helps plan and run events on the day, from venue setup to registration.",
       },
       {
         title: "Membership & Records Member",
@@ -132,11 +141,18 @@ export const TEAMS: Team[] = [
   },
 ];
 
-export const TEAM_OPTIONS: string[] = [...TEAMS.map((t) => t.title), NOT_SURE];
+export const TEAM_OPTIONS: string[] = [
+  ...TEAMS.map((t) => t.title),
+  NOT_SURE,
+];
 
 /** Roles a person can pick once they've chosen a team. */
 export function rolesForTeam(team: string): string[] {
   const found = TEAMS.find((t) => t.title === team);
   if (!found) return [];
-  return [...found.directors.map((r) => r.title), ...found.members.map((r) => r.title), ANY_ROLE];
+  return [
+    ...found.directors.map((r) => r.title),
+    ...found.members.map((r) => r.title),
+    ANY_ROLE,
+  ];
 }

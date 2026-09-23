@@ -40,7 +40,9 @@ function Field({ label, value }: { label: string; value?: string | null | undefi
       <Text style={{ margin: 0, fontSize: "12px", color: MUTED, fontWeight: 600 }}>
         {label.toUpperCase()}
       </Text>
-      <Text style={{ margin: "2px 0 0", fontSize: "15px", color: "#1e293b" }}>{value || "—"}</Text>
+      <Text style={{ margin: "2px 0 0", fontSize: "15px", color: "#1e293b" }}>
+        {value || "—"}
+      </Text>
     </Section>
   );
 }
@@ -72,20 +74,10 @@ const Email = ({
             padding: "20px 24px",
           }}
         >
-          <Text
-            style={{
-              margin: 0,
-              color: "#ffffff",
-              fontSize: "13px",
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-            }}
-          >
+          <Text style={{ margin: 0, color: "#ffffff", fontSize: "13px", fontWeight: 600, letterSpacing: "0.04em" }}>
             ALFAISAL ISACA CONNECT
           </Text>
-          <Heading
-            style={{ margin: "8px 0 0", color: "#ffffff", fontSize: "22px", fontWeight: 700 }}
-          >
+          <Heading style={{ margin: "8px 0 0", color: "#ffffff", fontSize: "22px", fontWeight: 700 }}>
             New Membership Application
           </Heading>
         </Section>
@@ -144,7 +136,8 @@ const Email = ({
 
 export const template = {
   component: Email,
-  subject: (data: Record<string, any>) => `New application from ${data["fullName"] || "a student"}`,
+  subject: (data: Record<string, any>) =>
+    `New application from ${data["fullName"] || "a student"}`,
   displayName: "Application Alert",
   previewData: {
     fullName: "Sample Student",

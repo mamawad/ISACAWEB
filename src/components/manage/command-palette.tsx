@@ -68,7 +68,7 @@ export function CommandPalette({
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput
-        placeholder="Jump to a page, project or task…"
+        aria-label="Search pages, projects and tasks"
         value={query}
         onValueChange={setQuery}
       />

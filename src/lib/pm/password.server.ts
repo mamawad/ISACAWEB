@@ -6,7 +6,9 @@
  * Stored format: pbkdf2$<iterations>$<salt b64>$<hash b64>
  */
 
-const ITERATIONS = 120_000;
+// The edge runtime refuses PBKDF2 above 100k iterations.
+const MAX_ITERATIONS = 100_000;
+const ITERATIONS = MAX_ITERATIONS;
 const KEY_BYTES = 32;
 
 function toB64(bytes: Uint8Array): string {
@@ -44,11 +46,19 @@ export async function hashPassword(password: string): Promise<string> {
   return `pbkdf2$${ITERATIONS}$${toB64(salt)}$${toB64(hash)}`;
 }
 
+/** True when the stored hash cannot be checked by this runtime and must be reset. */
+export function isUnsupportedHash(stored: string): boolean {
+  const [scheme, iterStr] = stored.split("$");
+  const iterations = Number(iterStr);
+  return scheme === "pbkdf2" && Number.isFinite(iterations) && iterations > MAX_ITERATIONS;
+}
+
 export async function verifyPassword(password: string, stored: string): Promise<boolean> {
   const [scheme, iterStr, saltB64, hashB64] = stored.split("$");
   if (scheme !== "pbkdf2" || !iterStr || !saltB64 || !hashB64) return false;
   const iterations = Number(iterStr);
   if (!Number.isFinite(iterations) || iterations < 1000) return false;
+  if (iterations > MAX_ITERATIONS) return false;
   const expected = fromB64(hashB64);
   const actual = await derive(password, fromB64(saltB64), iterations);
   if (actual.length !== expected.length) return false;
