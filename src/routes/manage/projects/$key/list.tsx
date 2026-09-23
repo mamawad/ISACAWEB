@@ -1,7 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, ArrowUpDown, List as ListIcon } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronDown,
+  ChevronRight,
+  List as ListIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { listProjectTasks, updateTask } from "@/lib/pm/tasks.functions";
 import {
@@ -31,6 +38,9 @@ type SortKey = "key" | "title" | "status" | "priority" | "assignee" | "due_date"
 const STATUS_RANK = Object.fromEntries(STATUSES.map((s, i) => [s.key, i]));
 const PRIORITY_RANK = Object.fromEntries(PRIORITIES.map((p) => [p.key, p.rank]));
 
+type Node = { task: PmTask; depth: number; children: Node[] };
+type Row = { task: PmTask; depth: number; hasChildren: boolean; expanded: boolean };
+
 function ListPage() {
   const ctx = useManage();
   const { project, people, rights, openTask, openCreate } = useProject();
@@ -42,7 +52,8 @@ function ListPage() {
   const tasks = query.data?.tasks ?? [];
   const { filter, setFilter, filtered, active, reset } = useTaskFilter(tasks, ctx.user.id);
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "updated_at", dir: -1 });
-  const [groupByEpic, setGroupByEpic] = useState(false);
+  const [nested, setNested] = useState(true);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   const sorted = useMemo(() => {
     const cmp = (a: PmTask, b: PmTask): number => {
@@ -67,22 +78,52 @@ function ListPage() {
     return [...filtered].sort((a, b) => cmp(a, b) * sort.dir);
   }, [filtered, sort]);
 
-  const groups = useMemo(() => {
-    if (!groupByEpic) return [{ label: null as string | null, tasks: sorted }];
-    const epics = new Map<string, { label: string; tasks: PmTask[] }>();
-    const none: PmTask[] = [];
-    for (const t of sorted) {
-      if (t.parent) {
-        const g = epics.get(t.parent.id) ?? {
-          label: `${t.parent.key} · ${t.parent.title}`,
-          tasks: [],
-        };
-        g.tasks.push(t);
-        epics.set(t.parent.id, g);
-      } else none.push(t);
+  /** Flat rows in hierarchy order: epic > story > task > bug. */
+  const rows = useMemo<Row[]>(() => {
+    if (!nested) {
+      return sorted.map((t) => ({ task: t, depth: 0, hasChildren: false, expanded: false }));
     }
-    return [...epics.values(), { label: "No epic", tasks: none }].filter((g) => g.tasks.length);
-  }, [sorted, groupByEpic]);
+    const byId = new Map<string, Node>(
+      sorted.map((t) => [t.id, { task: t, depth: 0, children: [] }]),
+    );
+    const roots: Node[] = [];
+    for (const node of byId.values()) {
+      const parentId = node.task.parent_id;
+      const parent = parentId ? byId.get(parentId) : undefined;
+      if (parent && parent !== node) parent.children.push(node);
+      else roots.push(node);
+    }
+    const out: Row[] = [];
+    const walk = (nodes: Node[], depth: number) => {
+      for (const n of nodes) {
+        const hasChildren = n.children.length > 0;
+        const expanded = hasChildren && !collapsed.has(n.task.id);
+        out.push({ task: n.task, depth, hasChildren, expanded });
+        if (expanded) walk(n.children, depth + 1);
+      }
+    };
+    walk(roots, 0);
+    return out;
+  }, [sorted, nested, collapsed]);
+
+  // Drop collapse state for tasks that no longer exist.
+  useEffect(() => {
+    setCollapsed((prev) => {
+      if (prev.size === 0) return prev;
+      const ids = new Set(tasks.map((t) => t.id));
+      const next = new Set([...prev].filter((id) => ids.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [tasks]);
+
+  function toggleRow(id: string) {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   const setStatus = useMutation({
     mutationFn: (v: { id: string; status: TaskStatus }) => updateTask({ data: v }),
@@ -145,15 +186,41 @@ function ListPage() {
           reset={reset}
           showStatus
         />
-        <label className="flex h-9 cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-          <input
-            type="checkbox"
-            checked={groupByEpic}
-            onChange={(e) => setGroupByEpic(e.target.checked)}
-            className="h-4 w-4 accent-[var(--primary)]"
-          />
-          Group by epic
-        </label>
+        <div className="flex h-9 items-center gap-3">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={nested}
+              onChange={(e) => setNested(e.target.checked)}
+              className="h-4 w-4 accent-[var(--primary)]"
+            />
+            Nested view
+          </label>
+          {nested ? (
+            <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={() => setCollapsed(new Set())}
+                className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-black/5 hover:text-foreground"
+              >
+                Expand all
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setCollapsed(
+                    new Set(
+                      tasks.filter((t) => tasks.some((c) => c.parent_id === t.id)).map((t) => t.id),
+                    ),
+                  )
+                }
+                className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-black/5 hover:text-foreground"
+              >
+                Collapse all
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {tasks.length === 0 ? (
@@ -195,27 +262,47 @@ function ListPage() {
               </tr>
             </thead>
             <tbody>
-              {groups.map((g) => (
-                <GroupRows key={g.label ?? "__all"} label={g.label}>
-                  {g.tasks.map((t) => {
-                    const editable = canEditTask(ctx, rights, t) && !project.is_archived;
-                    const overdue = t.due_date && t.due_date < today && t.status !== "done";
-                    return (
-                      <tr
-                        key={t.id}
-                        className="border-b border-black/5 transition-colors hover:bg-black/[0.025]"
+              {rows.map(({ task: t, depth, hasChildren, expanded }) => {
+                const editable = canEditTask(ctx, rights, t) && !project.is_archived;
+                const overdue = t.due_date && t.due_date < today && t.status !== "done";
+                return (
+                  <tr
+                    key={t.id}
+                    className="border-b border-black/5 transition-colors hover:bg-black/[0.025]"
+                  >
+                    <td className="px-3 py-2">
+                      <button
+                        type="button"
+                        onClick={() => openTask(t.id)}
+                        className="inline-flex items-center gap-2 font-mono text-xs text-muted-foreground hover:text-primary"
                       >
-                        <td className="px-3 py-2">
+                        <TypeIcon type={t.type} size="xs" />
+                        {t.key}
+                      </button>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span
+                        className="inline-flex items-start gap-1"
+                        style={{ paddingLeft: depth * 18 }}
+                      >
+                        {hasChildren ? (
                           <button
                             type="button"
-                            onClick={() => openTask(t.id)}
-                            className="inline-flex items-center gap-2 font-mono text-xs text-muted-foreground hover:text-primary"
+                            onClick={() => toggleRow(t.id)}
+                            aria-expanded={expanded}
+                            aria-label={expanded ? `Collapse ${t.key}` : `Expand ${t.key}`}
+                            className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded text-muted-foreground hover:bg-black/5 hover:text-foreground"
                           >
-                            <TypeIcon type={t.type} size="xs" />
-                            {t.key}
+                            {expanded ? (
+                              <ChevronDown className="h-3.5 w-3.5" />
+                            ) : (
+                              <ChevronRight className="h-3.5 w-3.5" />
+                            )}
                           </button>
-                        </td>
-                        <td className="px-3 py-2">
+                        ) : (
+                          <span className="h-5 w-5 shrink-0" />
+                        )}
+                        <span>
                           <button
                             type="button"
                             onClick={() => openTask(t.id)}
@@ -235,67 +322,50 @@ function ListPage() {
                               ))}
                             </span>
                           ) : null}
-                        </td>
-                        <td className="px-3 py-1.5">
-                          {editable ? (
-                            <SelectField
-                              className="h-8 text-xs"
-                              value={t.status}
-                              onChange={(v) =>
-                                setStatus.mutate({ id: t.id, status: v as TaskStatus })
-                              }
-                              options={STATUSES.map((s) => ({ value: s.key, label: s.label }))}
-                            />
-                          ) : (
-                            <StatusBadge status={t.status} />
-                          )}
-                        </td>
-                        <td className="px-3 py-2">
-                          <PriorityIcon priority={t.priority} withLabel />
-                        </td>
-                        <td className="px-3 py-2">
-                          <span className="inline-flex items-center gap-2">
-                            <Avatar user={t.assignee} size="xs" />
-                            <span className="truncate text-xs">
-                              {t.assignee?.display_name ?? "Unassigned"}
-                            </span>
-                          </span>
-                        </td>
-                        <td
-                          className={cn(
-                            "px-3 py-2 text-xs",
-                            overdue ? "font-semibold text-destructive" : "text-muted-foreground",
-                          )}
-                        >
-                          {formatDate(t.due_date)}
-                        </td>
-                        <td className="px-3 py-2 text-xs text-muted-foreground">
-                          {timeAgo(t.updated_at)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </GroupRows>
-              ))}
+                        </span>
+                      </span>
+                    </td>
+                    <td className="px-3 py-1.5">
+                      {editable ? (
+                        <SelectField
+                          className="h-8 text-xs"
+                          value={t.status}
+                          onChange={(v) => setStatus.mutate({ id: t.id, status: v as TaskStatus })}
+                          options={STATUSES.map((s) => ({ value: s.key, label: s.label }))}
+                        />
+                      ) : (
+                        <StatusBadge status={t.status} />
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
+                      <PriorityIcon priority={t.priority} withLabel />
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className="inline-flex items-center gap-2">
+                        <Avatar user={t.assignee} size="xs" />
+                        <span className="truncate text-xs">
+                          {t.assignee?.display_name ?? "Unassigned"}
+                        </span>
+                      </span>
+                    </td>
+                    <td
+                      className={cn(
+                        "px-3 py-2 text-xs",
+                        overdue ? "font-semibold text-destructive" : "text-muted-foreground",
+                      )}
+                    >
+                      {formatDate(t.due_date)}
+                    </td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">
+                      {timeAgo(t.updated_at)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
-    </>
-  );
-}
-
-function GroupRows({ label, children }: { label: string | null; children: React.ReactNode }) {
-  return (
-    <>
-      {label ? (
-        <tr className="bg-primary/5">
-          <td colSpan={7} className="px-3 py-1.5 text-xs font-semibold text-primary">
-            {label}
-          </td>
-        </tr>
-      ) : null}
-      {children}
     </>
   );
 }

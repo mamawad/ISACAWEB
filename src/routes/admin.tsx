@@ -12,6 +12,9 @@ import {
   MailCheck,
   Send,
   Copy,
+  CalendarCheck,
+  Users,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -46,6 +49,10 @@ import {
 import {
   deleteSignup,
   getLiveExportUrl,
+  getInterviewerEmails,
+  saveInterviewerEmails,
+  getInviteConnectionStatus,
+  sendInterviewInvites,
   listSignups,
   lockAdmin,
   resendSignupAlerts,
@@ -73,6 +80,10 @@ function AdminPage() {
   const remove = useServerFn(deleteSignup);
   const liveUrl = useServerFn(getLiveExportUrl);
   const resend = useServerFn(resendSignupAlerts);
+  const fetchInterviewers = useServerFn(getInterviewerEmails);
+  const persistInterviewers = useServerFn(saveInterviewerEmails);
+  const inviteStatus = useServerFn(getInviteConnectionStatus);
+  const sendInvites = useServerFn(sendInterviewInvites);
   const [password, setPassword] = useState("");
   const [signups, setSignups] = useState<SignupRow[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -86,6 +97,15 @@ function AdminPage() {
   const [resendingAll, setResendingAll] = useState(false);
 
   const [filters, setFilters] = useState<SignupFilters>({ ...EMPTY_FILTERS });
+
+  // Interview invites state
+  const [interviewerEmails, setInterviewerEmails] = useState<string[]>([]);
+  const [newInterviewer, setNewInterviewer] = useState("");
+  const [interviewersLoaded, setInterviewersLoaded] = useState(false);
+  const [savingInterviewers, setSavingInterviewers] = useState(false);
+  const [inviteConnected, setInviteConnected] = useState<boolean | null>(null);
+  const [invitingId, setInvitingId] = useState<string | null>(null);
+  const [invitingAll, setInvitingAll] = useState(false);
 
   // Rows matching the current filter menu; all actions operate on these.
   const filtered = useMemo(() => applyFilters(signups ?? [], filters), [signups, filters]);
@@ -113,6 +133,71 @@ function AdminPage() {
     } finally {
       setResendingId(null);
       setResendingAll(false);
+    }
+  }
+
+  async function addInterviewer() {
+    const e = newInterviewer.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
+    if (interviewerEmails.includes(e)) {
+      setNewInterviewer("");
+      return;
+    }
+    const next = [...interviewerEmails, e];
+    setInterviewerEmails(next);
+    setNewInterviewer("");
+    await saveInterviewers(next);
+  }
+
+  async function removeInterviewer(email: string) {
+    const next = interviewerEmails.filter((x) => x !== email);
+    setInterviewerEmails(next);
+    await saveInterviewers(next);
+  }
+
+  async function saveInterviewers(emails: string[]) {
+    setSavingInterviewers(true);
+    try {
+      const res = await persistInterviewers({ data: { emails } });
+      if (!res.ok) {
+        toast.error("Session expired. Please sign in again.");
+        return;
+      }
+      setInterviewerEmails(res.emails);
+    } catch {
+      toast.error("Could not save interviewers right now.");
+    } finally {
+      setSavingInterviewers(false);
+    }
+  }
+
+  async function runSendInvite(id?: string) {
+    if (id) setInvitingId(id);
+    else setInvitingAll(true);
+    try {
+      const res = await sendInvites({ data: id ? { id } : {} });
+      if (!res.ok) {
+        toast.error("Session expired. Please sign in again.");
+        return;
+      }
+      setSignups(res.signups);
+      if (res.sent === 0 && res.failed === 0) {
+        toast.message("Nothing to send, every interview already has an invite.");
+      } else if (res.failed === 0) {
+        toast.success(
+          `Sent ${res.sent} invite${res.sent === 1 ? "" : "s"}. Check Outlook to track RSVPs.`,
+        );
+      } else {
+        toast.error(`Sent ${res.sent}, ${res.failed} failed. Is Microsoft still connected?`);
+      }
+    } catch {
+      toast.error("Could not send the invite right now. Please try again.");
+    } finally {
+      setInvitingId(null);
+      setInvitingAll(false);
     }
   }
 
@@ -153,6 +238,30 @@ function AdminPage() {
       active = false;
     };
   }, [list]);
+
+  // Once signed in, load the interviewer list and the Outlook connection status.
+  useEffect(() => {
+    if (!signups || interviewersLoaded) return;
+    let active = true;
+    void (async () => {
+      try {
+        const [emails, status] = await Promise.all([
+          fetchInterviewers(),
+          inviteStatus(),
+        ]);
+        if (!active) return;
+        if (emails.ok) setInterviewerEmails(emails.emails);
+        if (status.ok) setInviteConnected(status.connected);
+      } catch {
+        /* keep defaults */
+      } finally {
+        if (active) setInterviewersLoaded(true);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [signups, interviewersLoaded, fetchInterviewers, inviteStatus]);
 
   async function onLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -349,6 +458,105 @@ function AdminPage() {
         </div>
       </div>
 
+      <div className="mt-6 rounded-2xl border border-border bg-muted/40 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <CalendarCheck className="h-4 w-4 text-primary" />
+            Interview calendar invites
+          </h2>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void runSendInvite()}
+            disabled={
+              invitingAll ||
+              inviteConnected === false ||
+              !signups.some((s) => s.interview_slot && !s.invite_sent_at)
+            }
+          >
+            {invitingAll ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+            Send all invites
+          </Button>
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Clicking “Send invite” creates a real Teams meeting in the connected Outlook calendar
+          and sends the applicant (plus everyone below) a calendar invite they can accept or
+          decline. RSVPs show up in that Outlook calendar. This never runs automatically.
+        </p>
+
+        {inviteConnected === false ? (
+          <p className="mt-3 rounded-md bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">
+            Microsoft Outlook isn’t connected yet. Connect it from the chat to enable invites.
+          </p>
+        ) : null}
+
+        <div className="mt-3">
+          <Label className="text-xs font-medium text-muted-foreground">
+            Interviewer emails (added to every invite)
+          </Label>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {interviewerEmails.length === 0 ? (
+              <span className="text-xs text-muted-foreground">None added yet.</span>
+            ) : (
+              interviewerEmails.map((e) => (
+                <span
+                  key={e}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs"
+                >
+                  {e}
+                  <button
+                    type="button"
+                    aria-label={`Remove ${e}`}
+                    className="text-muted-foreground hover:text-destructive"
+                    disabled={savingInterviewers}
+                    onClick={() => void removeInterviewer(e)}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))
+            )}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Input
+              type="email"
+              placeholder="interviewer@example.com"
+              value={newInterviewer}
+              onChange={(e) => setNewInterviewer(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void addInterviewer();
+                }
+              }}
+              className="h-9 max-w-xs"
+              disabled={savingInterviewers}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void addInterviewer()}
+              disabled={savingInterviewers || !newInterviewer.trim()}
+            >
+              {savingInterviewers ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+              Add
+            </Button>
+          </div>
+        </div>
+        <p className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
+          <Users className="h-3.5 w-3.5" />
+          The applicant is always included automatically.
+        </p>
+      </div>
+
       <SignupFilterPanel
         filters={filters}
         onChange={setFilters}
@@ -380,10 +588,11 @@ function AdminPage() {
                   <TableHead>Phone</TableHead>
                   <TableHead>Reason</TableHead>
                   <TableHead>Submitted</TableHead>
-                  <TableHead>Emailed</TableHead>
-                  <TableHead className="w-12">
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
+                   <TableHead>Emailed</TableHead>
+                   <TableHead>Invite</TableHead>
+                   <TableHead className="w-12">
+                     <span className="sr-only">Actions</span>
+                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -429,9 +638,38 @@ function AdminPage() {
                           )}
                           Send
                         </Button>
-                      )}
-                    </TableCell>
-                    <TableCell>
+                       )}
+                     </TableCell>
+                     <TableCell className="whitespace-nowrap">
+                       {!s.interview_slot ? (
+                         <span className="text-sm text-muted-foreground">—</span>
+                       ) : s.invite_sent_at ? (
+                         <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                           <CalendarCheck className="h-4 w-4 text-primary" />
+                           Sent
+                         </span>
+                       ) : (
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => void runSendInvite(s.id)}
+                           disabled={invitingId === s.id || inviteConnected === false}
+                           title={
+                             inviteConnected === false
+                               ? "Connect Microsoft Outlook first."
+                               : "Create a Teams invite the applicant can RSVP."
+                           }
+                         >
+                           {invitingId === s.id ? (
+                             <Loader2 className="h-4 w-4 animate-spin" />
+                           ) : (
+                             <CalendarCheck className="h-4 w-4" />
+                           )}
+                           Send
+                         </Button>
+                       )}
+                     </TableCell>
+                     <TableCell>
                       <Button
                         variant="ghost"
                         size="icon"

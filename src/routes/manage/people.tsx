@@ -121,7 +121,6 @@ function PeoplePage() {
           <>
             <input
               className="h-9 w-52 rounded-lg border border-input bg-white px-3 text-sm shadow-sm outline-none focus:border-primary"
-              placeholder="Search people"
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />
@@ -225,7 +224,7 @@ function PeoplePage() {
                             <MoreHorizontal className="h-4 w-4" />
                           </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className="manage-theme">
                           {can("people.impersonate") &&
                           u.id !== ctx.user.id &&
                           u.is_active &&
@@ -377,7 +376,7 @@ function CreateUserDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="manage-theme max-h-[90vh] overflow-y-auto sm:max-w-lg">
         {created ? (
           <>
             <DialogHeader>
@@ -419,7 +418,6 @@ function CreateUserDialog({
                     className={inputClass}
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Sara Al-Otaibi"
                     required
                     autoFocus
                   />
@@ -431,7 +429,6 @@ function CreateUserDialog({
                     onChange={(e) =>
                       setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""))
                     }
-                    placeholder="sara.o"
                     required
                   />
                 </Field>
@@ -442,7 +439,6 @@ function CreateUserDialog({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="sara@alfaisal.edu"
                 />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -589,7 +585,7 @@ function EditUserDialog({
 
   return (
     <Dialog open={user !== null} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="manage-theme max-h-[90vh] overflow-y-auto sm:max-w-md">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -713,7 +709,7 @@ function ResetPasswordDialog({
 
   return (
     <Dialog open={user !== null} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="manage-theme max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display">
             Reset password for {user?.display_name}

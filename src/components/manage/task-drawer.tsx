@@ -46,6 +46,8 @@ import {
 import { addLink, deleteFile, getFileUrl } from "@/lib/pm/files.functions";
 import { describeActivity } from "@/lib/pm/activity-text";
 import {
+  PARENT_LABEL,
+  PARENT_TYPE,
   PRIORITIES,
   STATUSES,
   TASK_TYPES,
@@ -79,7 +81,7 @@ export function TaskDrawer({ taskId, onClose }: { taskId: string | null; onClose
     <Sheet open={taskId !== null} onOpenChange={(o) => !o && onClose()}>
       <SheetContent
         side="right"
-        className="w-full overflow-y-auto border-l border-black/8 bg-background p-0 sm:max-w-2xl"
+        className="manage-theme w-full overflow-y-auto border-l border-border bg-background p-0 text-foreground sm:max-w-2xl"
       >
         <SheetTitle className="sr-only">Task details</SheetTitle>
         {taskId ? <TaskBody key={taskId} taskId={taskId} onClose={onClose} /> : null}
@@ -142,7 +144,10 @@ function TaskBody({ taskId, onClose }: { taskId: string; onClose: () => void }) 
   }
 
   const { task, canEdit, canDelete, comments, activity, files, subtasks } = query.data;
-  const epics = (epicsQuery.data?.tasks ?? []).filter((t) => t.type === "epic" && t.id !== task.id);
+  const parentType = PARENT_TYPE[task.type];
+  const parentOptions = (epicsQuery.data?.tasks ?? []).filter(
+    (t) => t.type === parentType && t.id !== task.id,
+  );
   const set = (patch: Patch) => update.mutate(patch);
 
   return (
@@ -178,7 +183,7 @@ function TaskBody({ taskId, onClose }: { taskId: string; onClose: () => void }) 
                   <MoreHorizontal className="h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="manage-theme">
                 <DropdownMenuItem
                   className="text-destructive"
                   onSelect={() => setConfirmDelete(true)}
@@ -255,13 +260,13 @@ function TaskBody({ taskId, onClose }: { taskId: string; onClose: () => void }) 
             />
           </Field>
           {task.type !== "epic" ? (
-            <Field label="Epic">
+            <Field label={PARENT_LABEL[task.type]}>
               <SelectField
                 value={task.parent_id ?? ""}
                 disabled={!canEdit}
-                allowEmpty="No epic"
+                allowEmpty={`No ${PARENT_TYPE[task.type] ?? "parent"}`}
                 onChange={(v) => set({ parent_id: v || null })}
-                options={epics.map((e) => ({ value: e.id, label: `${e.key} ${e.title}` }))}
+                options={parentOptions.map((e) => ({ value: e.id, label: `${e.key} ${e.title}` }))}
               />
             </Field>
           ) : null}
@@ -430,7 +435,7 @@ function TaskBody({ taskId, onClose }: { taskId: string; onClose: () => void }) 
       </div>
 
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <AlertDialogContent>
+        <AlertDialogContent className="manage-theme">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {task.key}?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -705,13 +710,11 @@ function Attachments({
         <div className="mb-3 grid gap-2 rounded-xl border border-black/8 bg-white p-3 sm:grid-cols-[1fr_1.4fr_auto]">
           <input
             className={inputClass}
-            placeholder="Name"
             value={linkName}
             onChange={(e) => setLinkName(e.target.value)}
           />
           <input
             className={inputClass}
-            placeholder="https://drive.google.com/…"
             value={linkUrl}
             onChange={(e) => setLinkUrl(e.target.value)}
           />
@@ -836,7 +839,6 @@ function Comments({
           <div className="flex-1">
             <textarea
               className={cn(inputClass, "h-20 resize-y py-2")}
-              placeholder="Write a comment… (Ctrl+Enter to post)"
               value={body}
               onChange={(e) => setBody(e.target.value)}
               onKeyDown={(e) => {

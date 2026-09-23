@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { addDays, differenceInCalendarDays, format, parseISO, startOfWeek } from "date-fns";
 import { motion } from "motion/react";
-import { CalendarPlus, ZoomIn, ZoomOut } from "lucide-react";
+import { CalendarPlus, ChevronDown, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import { statusMeta, type PmTask } from "@/lib/pm/permissions";
 import { Avatar } from "./avatar";
 import { TypeIcon } from "./badges";
@@ -26,33 +26,99 @@ type Drag = {
   delta: number;
 };
 
+type Row = {
+  task: PmTask;
+  start: Date;
+  due: Date;
+  /** true when the task itself is scheduled; false when the span is rolled up from children */
+  own: boolean;
+  depth: number;
+  hasChildren: boolean;
+};
+
 function iso(d: Date): string {
   return format(d, "yyyy-MM-dd");
 }
 
-/** Gantt: one row per scheduled task, draggable bars, today marker, unscheduled list. */
+/** Gantt: nested epic > story > task > bug rows, draggable bars, today marker, unscheduled list. */
 export function Timeline({ tasks, canEdit, onChangeDates, onOpen }: TimelineProps) {
   const [dayWidth, setDayWidth] = useState(28);
   const [drag, setDrag] = useState<Drag | null>(null);
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const scroller = useRef<HTMLDivElement>(null);
   const today = useMemo(() => new Date(new Date().toDateString()), []);
 
-  const scheduled = useMemo(
-    () =>
-      tasks
-        .filter((t) => t.start_date || t.due_date)
-        .map((t) => {
-          const start = parseISO(t.start_date ?? t.due_date!);
-          const due = parseISO(t.due_date ?? t.start_date!);
-          return { task: t, start: due < start ? due : start, due: due < start ? start : due };
-        })
-        .sort((a, b) => a.start.getTime() - b.start.getTime() || a.task.number - b.task.number),
-    [tasks],
-  );
-  const unscheduled = useMemo(
-    () => tasks.filter((t) => !t.start_date && !t.due_date && t.status !== "done"),
-    [tasks],
-  );
+  const { scheduled, unscheduled, parents } = useMemo(() => {
+    const byId = new Map(tasks.map((t) => [t.id, t]));
+    const children = new Map<string, PmTask[]>();
+    const roots: PmTask[] = [];
+    for (const t of tasks) {
+      const pid = t.parent_id && byId.has(t.parent_id) && t.parent_id !== t.id ? t.parent_id : null;
+      if (pid) {
+        const list = children.get(pid) ?? [];
+        list.push(t);
+        children.set(pid, list);
+      } else {
+        roots.push(t);
+      }
+    }
+
+    type Span = { start: Date; due: Date; own: boolean } | null;
+    const spans = new Map<string, Span>();
+    const spanOf = (t: PmTask): Span => {
+      const cached = spans.get(t.id);
+      if (cached !== undefined) return cached;
+      spans.set(t.id, null); // cycle guard
+      let own = false;
+      let start: Date | null = null;
+      let due: Date | null = null;
+      if (t.start_date || t.due_date) {
+        own = true;
+        const s = parseISO(t.start_date ?? t.due_date!);
+        const d = parseISO(t.due_date ?? t.start_date!);
+        start = d < s ? d : s;
+        due = d < s ? s : d;
+      }
+      for (const c of children.get(t.id) ?? []) {
+        const cs = spanOf(c);
+        if (!cs) continue;
+        if (!start || cs.start < start) start = cs.start;
+        if (!due || cs.due > due) due = cs.due;
+      }
+      const res: Span = start && due ? { start, due, own } : null;
+      spans.set(t.id, res);
+      return res;
+    };
+
+    const rows: Row[] = [];
+    const parentIds = new Set<string>();
+    const walk = (list: PmTask[], depth: number) => {
+      const visible = list
+        .map((t) => ({ t, s: spanOf(t) }))
+        .filter((x): x is { t: PmTask; s: NonNullable<Span> } => Boolean(x.s))
+        .sort((a, b) => a.s.start.getTime() - b.s.start.getTime() || a.t.number - b.t.number);
+      for (const { t, s } of visible) {
+        const kids = (children.get(t.id) ?? []).filter((c) => spanOf(c));
+        if (kids.length) parentIds.add(t.id);
+        rows.push({
+          task: t,
+          start: s.start,
+          due: s.due,
+          own: s.own,
+          depth,
+          hasChildren: kids.length > 0,
+        });
+        if (kids.length && !collapsed.has(t.id)) walk(kids, depth + 1);
+      }
+    };
+    walk(roots, 0);
+
+    return {
+      scheduled: rows,
+      parents: parentIds,
+      unscheduled: tasks.filter((t) => !spanOf(t) && t.status !== "done"),
+    };
+  }, [tasks, collapsed]);
 
   const range = useMemo(() => {
     const starts = scheduled.map((s) => s.start.getTime());
@@ -88,12 +154,17 @@ export function Timeline({ tasks, canEdit, onChangeDates, onOpen }: TimelineProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [range, dayWidth]);
 
-  function beginDrag(
-    e: ReactPointerEvent<HTMLElement>,
-    item: (typeof scheduled)[number],
-    mode: Drag["mode"],
-  ) {
-    if (!canEdit(item.task)) return;
+  function toggle(id: string) {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function beginDrag(e: ReactPointerEvent<HTMLElement>, item: Row, mode: Drag["mode"]) {
+    if (!item.own || !canEdit(item.task)) return;
     e.preventDefault();
     e.stopPropagation();
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
@@ -135,7 +206,7 @@ export function Timeline({ tasks, canEdit, onChangeDates, onOpen }: TimelineProp
     onChangeDates(id, iso(s), iso(d));
   }
 
-  function previewOf(item: (typeof scheduled)[number]) {
+  function previewOf(item: Row) {
     if (!drag || drag.id !== item.task.id) return { start: item.start, due: item.due };
     if (drag.mode === "move")
       return { start: addDays(item.start, drag.delta), due: addDays(item.due, drag.delta) };
@@ -154,9 +225,27 @@ export function Timeline({ tasks, canEdit, onChangeDates, onOpen }: TimelineProp
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {scheduled.length} scheduled · drag a bar to move it, drag its edges to resize.
+          {scheduled.length} rows · drag a bar to move it, drag its edges to resize.
         </p>
         <div className="flex items-center gap-1">
+          {parents.size ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setCollapsed(new Set())}
+                className="btn btn-ghost btn-sm"
+              >
+                Expand all
+              </button>
+              <button
+                type="button"
+                onClick={() => setCollapsed(new Set(parents))}
+                className="btn btn-ghost btn-sm mr-2"
+              >
+                Collapse all
+              </button>
+            </>
+          ) : null}
           <button
             type="button"
             onClick={() => setDayWidth((w) => Math.max(10, w - 6))}
@@ -233,19 +322,48 @@ export function Timeline({ tasks, canEdit, onChangeDates, onOpen }: TimelineProp
             {/* Body */}
             <div className="relative flex">
               <div className="sticky left-0 z-10 w-[272px] shrink-0 border-r border-black/8 bg-white">
-                {scheduled.map(({ task }) => (
-                  <button
-                    key={task.id}
-                    type="button"
-                    onClick={() => onOpen(task.id)}
-                    className="flex w-full items-center gap-2 border-b border-black/5 px-3 text-left hover:bg-black/[0.03]"
-                    style={{ height: ROW_H }}
+                {scheduled.map((row) => (
+                  <div
+                    key={row.task.id}
+                    className="flex w-full items-center gap-1 border-b border-black/5 pr-3 hover:bg-black/[0.03]"
+                    style={{ height: ROW_H, paddingLeft: 8 + row.depth * 14 }}
                   >
-                    <TypeIcon type={task.type} size="xs" />
-                    <span className="font-mono text-[11px] text-muted-foreground">{task.key}</span>
-                    <span className="min-w-0 flex-1 truncate text-sm">{task.title}</span>
-                    <Avatar user={task.assignee} size="xs" />
-                  </button>
+                    {row.hasChildren ? (
+                      <button
+                        type="button"
+                        onClick={() => toggle(row.task.id)}
+                        className="grid h-5 w-5 shrink-0 place-items-center rounded hover:bg-black/10"
+                        aria-label={collapsed.has(row.task.id) ? "Expand" : "Collapse"}
+                      >
+                        {collapsed.has(row.task.id) ? (
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        ) : (
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    ) : (
+                      <span className="w-5 shrink-0" />
+                    )}
+                    <TypeIcon type={row.task.type} size="xs" />
+                    <button
+                      type="button"
+                      onClick={() => onOpen(row.task.id)}
+                      className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                    >
+                      <span className="font-mono text-[11px] text-muted-foreground">
+                        {row.task.key}
+                      </span>
+                      <span
+                        className={cn(
+                          "min-w-0 flex-1 truncate text-sm",
+                          row.depth === 0 && row.hasChildren && "font-semibold",
+                        )}
+                      >
+                        {row.task.title}
+                      </span>
+                    </button>
+                    <Avatar user={row.task.assignee} size="xs" />
+                  </div>
                 ))}
                 {scheduled.length === 0 ? (
                   <p className="px-4 py-6 text-sm text-muted-foreground">No scheduled tasks yet.</p>
@@ -281,7 +399,27 @@ export function Timeline({ tasks, canEdit, onChangeDates, onOpen }: TimelineProp
                     (differenceInCalendarDays(p.due, p.start) + 1) * dayWidth,
                   );
                   const hue = statusMeta(item.task.status).hue;
-                  const editable = canEdit(item.task);
+                  const editable = item.own && canEdit(item.task);
+
+                  if (!item.own) {
+                    // Rolled-up parent span: shows the range covered by its children.
+                    return (
+                      <div
+                        key={item.task.id}
+                        className="absolute flex h-4 cursor-pointer items-center rounded-sm border border-dashed"
+                        style={{
+                          top: row * ROW_H + (ROW_H - 16) / 2,
+                          left,
+                          width: w,
+                          borderColor: hue,
+                          backgroundColor: `${hue}22`,
+                        }}
+                        onClick={() => onOpen(item.task.id)}
+                        title={`${item.task.key} · rolled up ${iso(p.start)} → ${iso(p.due)}`}
+                      />
+                    );
+                  }
+
                   return (
                     <motion.div
                       key={item.task.id}

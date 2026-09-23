@@ -61,7 +61,10 @@ export async function checkLoginLockout(ip: string): Promise<RateLimitState> {
   if (lockedUntil && lockedUntil.getTime() > Date.now()) {
     return {
       blocked: true,
-      retryAfterMinutes: Math.max(1, Math.ceil((lockedUntil.getTime() - Date.now()) / 60000)),
+      retryAfterMinutes: Math.max(
+        1,
+        Math.ceil((lockedUntil.getTime() - Date.now()) / 60000),
+      ),
     };
   }
   return { blocked: false, retryAfterMinutes: 0 };
@@ -76,16 +79,17 @@ export async function recordFailedLogin(ip: string): Promise<RateLimitState> {
     .eq("ip", ip)
     .maybeSingle();
 
-  const previous =
-    data?.locked_until && new Date(data.locked_until).getTime() > Date.now()
-      ? (data.attempts ?? 0)
-      : data?.locked_until
-        ? 0
-        : (data?.attempts ?? 0);
+  const previous = data?.locked_until && new Date(data.locked_until).getTime() > Date.now()
+    ? (data.attempts ?? 0)
+    : data?.locked_until
+      ? 0
+      : (data?.attempts ?? 0);
 
   const attempts = previous + 1;
   const locked = attempts >= MAX_ATTEMPTS;
-  const lockedUntil = locked ? new Date(Date.now() + LOCKOUT_MINUTES * 60000).toISOString() : null;
+  const lockedUntil = locked
+    ? new Date(Date.now() + LOCKOUT_MINUTES * 60000).toISOString()
+    : null;
 
   await supabase.from("admin_login_attempts").upsert(
     {

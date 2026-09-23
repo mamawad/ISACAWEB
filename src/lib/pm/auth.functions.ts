@@ -3,9 +3,11 @@ import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import type { ManageContext } from "./permissions";
 
+// Kept permissive on purpose: an empty submit must surface as a friendly
+// message from the handler, not a thrown ZodError (which blanks the page).
 const loginSchema = z.object({
-  username: z.string().trim().min(1, "Enter your username.").max(64),
-  password: z.string().min(1, "Enter your password."),
+  username: z.string().trim().max(64).catch(""),
+  password: z.string().catch(""),
   remember: z.boolean().optional().default(false),
 });
 
@@ -43,8 +45,11 @@ export const getManageContext = createServerFn({ method: "GET" }).handler(
  * so no credential ever has to live in the repository.
  */
 export const manageLogin = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => loginSchema.parse(data))
+  .inputValidator((data: unknown) => loginSchema.parse(data ?? {}))
   .handler(async ({ data }) => {
+    if (!data.username || !data.password) {
+      return { ok: false as const, error: "Enter your username and password." };
+    }
     const [{ checkLoginLockout, clearLoginAttempts, recordFailedLogin }, { pmDb, logActivity }] =
       await Promise.all([import("@/lib/admin.server"), import("./db.server")]);
     const { hashPassword, verifyPassword } = await import("./password.server");
@@ -116,7 +121,28 @@ export const manageLogin = createServerFn({ method: "POST" })
         await recordFailedLogin(ip);
         return { ok: false as const, error: "Wrong username or password." };
       }
-      const good = await verifyPassword(data.password, found["password_hash"] as string);
+      const storedHash = found["password_hash"] as string;
+      const { isUnsupportedHash } = await import("./password.server");
+      let good = await verifyPassword(data.password, storedHash);
+
+      // Legacy hashes were written with a work factor this runtime cannot
+      // replay. Repair the administrator account from the bootstrap secret.
+      if (!good && isUnsupportedHash(storedHash)) {
+        const bootstrap = process.env["MANAGE_ADMIN_PASSWORD"];
+        if (username === "admin" && bootstrap && data.password === bootstrap) {
+          await db
+            .from("pm_users")
+            .update({ password_hash: await hashPassword(bootstrap) })
+            .eq("id", found["id"] as string);
+          good = true;
+        } else {
+          return {
+            ok: false as const,
+            error: "This account needs its password reset by an administrator.",
+          };
+        }
+      }
+
       if (!good) {
         const state = await recordFailedLogin(ip);
         return {

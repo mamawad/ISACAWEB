@@ -51,10 +51,15 @@ export const COLLEGES = {
     OTHER,
   ],
   "University Preparatory Program (UPP)": ["Undecided", OTHER],
-  "Law and International Relations": ["Law (LLB)", "International Relations", OTHER],
+  "Law and International Relations": [
+    "Law (LLB)",
+    "International Relations",
+    OTHER,
+  ],
   Medicine: ["Medicine and Surgery (MBBS)", OTHER],
   Other: [OTHER],
 } as const;
+
 
 export const COLLEGE_OPTIONS = Object.keys(COLLEGES) as [
   keyof typeof COLLEGES,
@@ -78,7 +83,8 @@ export const signupSchema = z
       .max(255, { message: "Email is too long." })
       .transform((v) => v.toLowerCase())
       .refine((v) => v.endsWith("@alfaisal.edu"), {
-        message: "Please use your Alfaisal email address (ending in @alfaisal.edu).",
+        message:
+          "Please use your Alfaisal email address (ending in @alfaisal.edu).",
       }),
     student_id: z
       .string()
@@ -134,7 +140,11 @@ export const signupSchema = z
       .max(1000, { message: "Please keep this under 1000 characters." })
       .optional()
       .or(z.literal("")),
-    interview_slot: z.string().trim().optional().or(z.literal("")),
+    interview_slot: z
+      .string()
+      .trim()
+      .optional()
+      .or(z.literal("")),
   })
   .refine((v) => v.program !== OTHER || !!v.program_other?.trim(), {
     message: "Please type your program.",
@@ -155,7 +165,9 @@ export type SignupInput = z.infer<typeof signupSchema>;
 
 /** The program value to store: the typed value when "Other" was picked. */
 export function resolveProgram(input: SignupInput): string {
-  return input.program === OTHER && input.program_other ? input.program_other : input.program;
+  return input.program === OTHER && input.program_other
+    ? input.program_other
+    : input.program;
 }
 
 export type SignupRow = {
@@ -176,4 +188,7 @@ export type SignupRow = {
   created_at: string;
   /** When the alert email for this application was successfully sent. */
   notified_at: string | null;
+  /** When a calendar invite was created for this interview. */
+  invite_sent_at: string | null;
 };
+

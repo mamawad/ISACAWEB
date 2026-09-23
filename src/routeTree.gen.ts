@@ -15,6 +15,7 @@ import { Route as EventsRouteImport } from './routes/events'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as ManageRouteImport } from './routes/manage'
 import { Route as MissionRouteImport } from './routes/mission'
+import { Route as OpeneventRouteImport } from './routes/openevent'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as ManageIndexRouteImport } from './routes/manage/index'
 import { Route as ManageLoginRouteImport } from './routes/manage/login'
@@ -23,6 +24,8 @@ import { Route as ManageProfileRouteImport } from './routes/manage/profile'
 import { Route as ManageRolesRouteImport } from './routes/manage/roles'
 import { Route as ManageTasksRouteImport } from './routes/manage/tasks'
 import { Route as ApiPublicSignupsExportRouteImport } from './routes/api/public/signups-export'
+import { Route as ManageInterviewsIndexRouteImport } from './routes/manage/interviews/index'
+import { Route as ManageInterviewsTrackRouteImport } from './routes/manage/interviews/$track'
 import { Route as ManageProjectsIndexRouteImport } from './routes/manage/projects/index'
 import { Route as ManageProjectsKeyRouteImport } from './routes/manage/projects/$key'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -60,6 +63,11 @@ const ManageRoute = ManageRouteImport.update({
 const MissionRoute = MissionRouteImport.update({
   id: '/mission',
   path: '/mission',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpeneventRoute = OpeneventRouteImport.update({
+  id: '/openevent',
+  path: '/openevent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TeamRoute = TeamRouteImport.update({
@@ -101,6 +109,16 @@ const ApiPublicSignupsExportRoute = ApiPublicSignupsExportRouteImport.update({
   id: '/api/public/signups-export',
   path: '/api/public/signups-export',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ManageInterviewsIndexRoute = ManageInterviewsIndexRouteImport.update({
+  id: '/interviews/',
+  path: '/interviews/',
+  getParentRoute: () => ManageRoute,
+} as any)
+const ManageInterviewsTrackRoute = ManageInterviewsTrackRouteImport.update({
+  id: '/interviews/$track',
+  path: '/interviews/$track',
+  getParentRoute: () => ManageRoute,
 } as any)
 const ManageProjectsIndexRoute = ManageProjectsIndexRouteImport.update({
   id: '/projects/',
@@ -153,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/join': typeof JoinRoute
   '/manage': typeof ManageRouteWithChildren
   '/mission': typeof MissionRoute
+  '/openevent': typeof OpeneventRoute
   '/team': typeof TeamRoute
   '/manage/login': typeof ManageLoginRoute
   '/manage/people': typeof ManagePeopleRoute
@@ -161,7 +180,9 @@ export interface FileRoutesByFullPath {
   '/manage/tasks': typeof ManageTasksRoute
   '/manage/': typeof ManageIndexRoute
   '/api/public/signups-export': typeof ApiPublicSignupsExportRoute
+  '/manage/interviews/$track': typeof ManageInterviewsTrackRoute
   '/manage/projects/$key': typeof ManageProjectsKeyRouteWithChildren
+  '/manage/interviews/': typeof ManageInterviewsIndexRoute
   '/manage/projects/': typeof ManageProjectsIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/manage/projects/$key/drive': typeof ManageProjectsKeyDriveRoute
@@ -176,6 +197,7 @@ export interface FileRoutesByTo {
   '/events': typeof EventsRoute
   '/join': typeof JoinRoute
   '/mission': typeof MissionRoute
+  '/openevent': typeof OpeneventRoute
   '/team': typeof TeamRoute
   '/manage/login': typeof ManageLoginRoute
   '/manage/people': typeof ManagePeopleRoute
@@ -184,6 +206,8 @@ export interface FileRoutesByTo {
   '/manage/tasks': typeof ManageTasksRoute
   '/manage': typeof ManageIndexRoute
   '/api/public/signups-export': typeof ApiPublicSignupsExportRoute
+  '/manage/interviews/$track': typeof ManageInterviewsTrackRoute
+  '/manage/interviews': typeof ManageInterviewsIndexRoute
   '/manage/projects': typeof ManageProjectsIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/manage/projects/$key/drive': typeof ManageProjectsKeyDriveRoute
@@ -200,6 +224,7 @@ export interface FileRoutesById {
   '/join': typeof JoinRoute
   '/manage': typeof ManageRouteWithChildren
   '/mission': typeof MissionRoute
+  '/openevent': typeof OpeneventRoute
   '/team': typeof TeamRoute
   '/manage/login': typeof ManageLoginRoute
   '/manage/people': typeof ManagePeopleRoute
@@ -208,7 +233,9 @@ export interface FileRoutesById {
   '/manage/tasks': typeof ManageTasksRoute
   '/manage/': typeof ManageIndexRoute
   '/api/public/signups-export': typeof ApiPublicSignupsExportRoute
+  '/manage/interviews/$track': typeof ManageInterviewsTrackRoute
   '/manage/projects/$key': typeof ManageProjectsKeyRouteWithChildren
+  '/manage/interviews/': typeof ManageInterviewsIndexRoute
   '/manage/projects/': typeof ManageProjectsIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/manage/projects/$key/drive': typeof ManageProjectsKeyDriveRoute
@@ -226,6 +253,7 @@ export interface FileRouteTypes {
     | '/join'
     | '/manage'
     | '/mission'
+    | '/openevent'
     | '/team'
     | '/manage/login'
     | '/manage/people'
@@ -234,7 +262,9 @@ export interface FileRouteTypes {
     | '/manage/tasks'
     | '/manage/'
     | '/api/public/signups-export'
+    | '/manage/interviews/$track'
     | '/manage/projects/$key'
+    | '/manage/interviews/'
     | '/manage/projects/'
     | '/lovable/email/transactional/preview'
     | '/manage/projects/$key/drive'
@@ -249,6 +279,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/join'
     | '/mission'
+    | '/openevent'
     | '/team'
     | '/manage/login'
     | '/manage/people'
@@ -257,6 +288,8 @@ export interface FileRouteTypes {
     | '/manage/tasks'
     | '/manage'
     | '/api/public/signups-export'
+    | '/manage/interviews/$track'
+    | '/manage/interviews'
     | '/manage/projects'
     | '/lovable/email/transactional/preview'
     | '/manage/projects/$key/drive'
@@ -272,6 +305,7 @@ export interface FileRouteTypes {
     | '/join'
     | '/manage'
     | '/mission'
+    | '/openevent'
     | '/team'
     | '/manage/login'
     | '/manage/people'
@@ -280,7 +314,9 @@ export interface FileRouteTypes {
     | '/manage/tasks'
     | '/manage/'
     | '/api/public/signups-export'
+    | '/manage/interviews/$track'
     | '/manage/projects/$key'
+    | '/manage/interviews/'
     | '/manage/projects/'
     | '/lovable/email/transactional/preview'
     | '/manage/projects/$key/drive'
@@ -297,6 +333,7 @@ export interface RootRouteChildren {
   JoinRoute: typeof JoinRoute
   ManageRoute: typeof ManageRouteWithChildren
   MissionRoute: typeof MissionRoute
+  OpeneventRoute: typeof OpeneventRoute
   TeamRoute: typeof TeamRoute
   ApiPublicSignupsExportRoute: typeof ApiPublicSignupsExportRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -344,6 +381,13 @@ declare module '@tanstack/react-router' {
       path: '/mission'
       fullPath: '/mission'
       preLoaderRoute: typeof MissionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/openevent': {
+      id: '/openevent'
+      path: '/openevent'
+      fullPath: '/openevent'
+      preLoaderRoute: typeof OpeneventRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/team': {
@@ -401,6 +445,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/signups-export'
       preLoaderRoute: typeof ApiPublicSignupsExportRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/manage/interviews/': {
+      id: '/manage/interviews/'
+      path: '/interviews'
+      fullPath: '/manage/interviews/'
+      preLoaderRoute: typeof ManageInterviewsIndexRouteImport
+      parentRoute: typeof ManageRoute
+    }
+    '/manage/interviews/$track': {
+      id: '/manage/interviews/$track'
+      path: '/interviews/$track'
+      fullPath: '/manage/interviews/$track'
+      preLoaderRoute: typeof ManageInterviewsTrackRouteImport
+      parentRoute: typeof ManageRoute
     }
     '/manage/projects/': {
       id: '/manage/projects/'
@@ -487,7 +545,9 @@ interface ManageRouteChildren {
   ManageRolesRoute: typeof ManageRolesRoute
   ManageTasksRoute: typeof ManageTasksRoute
   ManageIndexRoute: typeof ManageIndexRoute
+  ManageInterviewsTrackRoute: typeof ManageInterviewsTrackRoute
   ManageProjectsKeyRoute: typeof ManageProjectsKeyRouteWithChildren
+  ManageInterviewsIndexRoute: typeof ManageInterviewsIndexRoute
   ManageProjectsIndexRoute: typeof ManageProjectsIndexRoute
 }
 
@@ -498,7 +558,9 @@ const ManageRouteChildren: ManageRouteChildren = {
   ManageRolesRoute: ManageRolesRoute,
   ManageTasksRoute: ManageTasksRoute,
   ManageIndexRoute: ManageIndexRoute,
+  ManageInterviewsTrackRoute: ManageInterviewsTrackRoute,
   ManageProjectsKeyRoute: ManageProjectsKeyRouteWithChildren,
+  ManageInterviewsIndexRoute: ManageInterviewsIndexRoute,
   ManageProjectsIndexRoute: ManageProjectsIndexRoute,
 }
 
@@ -512,6 +574,7 @@ const rootRouteChildren: RootRouteChildren = {
   JoinRoute: JoinRoute,
   ManageRoute: ManageRouteWithChildren,
   MissionRoute: MissionRoute,
+  OpeneventRoute: OpeneventRoute,
   TeamRoute: TeamRoute,
   ApiPublicSignupsExportRoute: ApiPublicSignupsExportRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,

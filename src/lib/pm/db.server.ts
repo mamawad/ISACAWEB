@@ -27,7 +27,7 @@ export type Row = Record<string, any>;
 export const MINI_USER_COLS = "id, username, display_name, avatar_color";
 export const USER_COLS =
   "id, username, display_name, email, role_id, is_admin, is_active, must_change_password, avatar_color, last_login_at, created_at, role:pm_roles(id, name, permissions)";
-export const TASK_COLS = `*, assignee:pm_users!pm_tasks_assignee_id_fkey(${MINI_USER_COLS}), reporter:pm_users!pm_tasks_reporter_id_fkey(${MINI_USER_COLS}), parent:pm_tasks!pm_tasks_parent_id_fkey(id, number, title), project:pm_projects(key)`;
+export const TASK_COLS = `*, assignee:pm_users!pm_tasks_assignee_id_fkey(${MINI_USER_COLS}), reporter:pm_users!pm_tasks_reporter_id_fkey(${MINI_USER_COLS}), parent:parent_id(id, number, title), project:pm_projects(key)`;
 
 export function mapMini(row: Row | null | undefined): MiniUser | null {
   if (!row) return null;

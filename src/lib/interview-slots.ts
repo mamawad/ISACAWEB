@@ -3,15 +3,15 @@
  * applicants on the Join Us form.
  *
  * Range: Sep 2 to Sep 30, 2026.
- * Saturdays only: 12:00–18:00 in 10-minute steps.
- * Exception: Sunday Sep 6 is also bookable, 12:00–13:00.
+ * Saturdays only: 12:30–15:00 in 10-minute steps.
+ * Exception: Sunday Sep 6 was also bookable, 12:30–15:00.
  * All times are Riyadh time (UTC+3, no DST).
  */
 
 export const INTERVIEW_RANGE_START = "2026-09-02";
 export const INTERVIEW_RANGE_END = "2026-09-30";
 
-/** Extra bookable date outside the Saturday rule (12:00–13:00). */
+/** Extra bookable date outside the Saturday rule (12:30–15:00). */
 const SUNDAY_EXCEPTION_DATE = "2026-09-06";
 
 /** Riyadh is UTC+3 year-round (no daylight saving). */
@@ -63,18 +63,18 @@ function minutesToHHMM(mins: number): string {
 
 /**
  * Saturday offered window (Riyadh local, HH:MM). Slots are offered from
- * 16:00 to 17:50 in 10-minute steps. Edit here to change the window.
+ * 12:30 to 15:00 in 10-minute steps. Edit here to change the window.
  */
 const SATURDAY_WINDOW = {
-  start: toMinutes("16:00"),
-  end: toMinutes("17:50"),
+  start: toMinutes("12:30"),
+  end: toMinutes("15:00"),
   step: 10,
 };
 
 /** Day rule: returns the list of [start, end) windows for the 10-minute slots. */
 function dayWindows(date: Date): { start: number; end: number; step: number }[] | null {
   if (ymd(date) === SUNDAY_EXCEPTION_DATE) {
-    return [{ start: toMinutes("12:00"), end: toMinutes("13:00"), step: 10 }];
+    return [{ start: toMinutes("12:30"), end: toMinutes("15:00"), step: 10 }];
   }
   const dow = date.getUTCDay(); // 0 Sun .. 6 Sat
   if (dow !== 6) return null; // Saturdays only
@@ -88,7 +88,8 @@ function riyadhToUTCISO(ymd: string, hhmm: string): string {
   const m = parts[1]!;
   const d = parts[2]!;
   const mins = toMinutes(hhmm);
-  const utcMs = Date.UTC(y, m - 1, d, 0, 0, 0) + (mins - RIYADH_OFFSET_MINUTES) * 60_000;
+  const utcMs =
+    Date.UTC(y, m - 1, d, 0, 0, 0) + (mins - RIYADH_OFFSET_MINUTES) * 60_000;
   return new Date(utcMs).toISOString();
 }
 
@@ -172,6 +173,7 @@ export function slotsForDate(date: string): InterviewSlot[] {
 export function isValidSlotISO(iso: string): boolean {
   return upcomingSlots().some((s) => s.iso === iso);
 }
+
 
 /** Human label for a stored ISO timestamp (Riyadh time). */
 export function labelSlotISO(iso: string): string {

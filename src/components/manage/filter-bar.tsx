@@ -25,7 +25,6 @@ export function FilterBar({
         <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           className="h-9 w-56 rounded-lg border border-input bg-white pl-9 pr-3 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-          placeholder="Search tasks"
           value={filter.q}
           onChange={(e) => setFilter({ ...filter, q: e.target.value })}
         />

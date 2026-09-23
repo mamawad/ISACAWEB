@@ -615,6 +615,56 @@
   color: var(--foreground);
 }
 
+/* Keep workspace form values legible, including portalled dialogs and menus. */
+.manage-theme input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.manage-theme textarea,
+.manage-theme button[role="combobox"] {
+  background-color: var(--surface);
+  color: var(--foreground);
+  caret-color: var(--foreground);
+  border-color: oklch(0.48 0.025 290 / 35%);
+}
+.manage-theme button[role="combobox"] {
+  min-height: 2.5rem;
+  font-weight: 600;
+  box-shadow: 0 1px 2px oklch(0 0 0 / 8%);
+}
+.manage-theme button[role="combobox"]:hover {
+  border-color: var(--primary);
+}
+.manage-theme button[role="combobox"][data-state="open"] {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 18%, transparent);
+}
+.manage-theme input::placeholder,
+.manage-theme textarea::placeholder {
+  color: transparent;
+}
+.manage-theme [role="option"],
+.manage-theme [role="menuitem"] {
+  color: var(--foreground);
+}
+.manage-theme [role="listbox"],
+.manage-theme [role="menu"] {
+  background-color: var(--popover);
+  color: var(--popover-foreground);
+  border-color: oklch(0.48 0.025 290 / 28%);
+  box-shadow: 0 12px 32px oklch(0 0 0 / 16%);
+}
+.manage-theme [role="option"] {
+  min-height: 2.5rem;
+  font-weight: 500;
+}
+.manage-theme [role="option"][data-highlighted],
+.manage-theme [role="menuitem"][data-highlighted] {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.manage-theme button[role="combobox"] svg {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
 /* Utilities the workspace leans on */
 .manage-theme .eyebrow {
   color: var(--primary);

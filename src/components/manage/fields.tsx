@@ -48,7 +48,7 @@ export function SelectField({
   value,
   onChange,
   options,
-  placeholder = "Select…",
+  placeholder = "",
   disabled,
   className,
   allowEmpty,
@@ -69,10 +69,10 @@ export function SelectField({
       onValueChange={(v) => onChange(v === NONE ? "" : v)}
       disabled={disabled ?? false}
     >
-      <SelectTrigger className={cn("w-full min-w-0 bg-white", className)}>
+      <SelectTrigger className={cn("w-full min-w-0 bg-surface text-foreground", className)}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="manage-theme">
         {allowEmpty ? (
           <SelectItem value={NONE}>
             <span className="text-muted-foreground">{allowEmpty}</span>
@@ -94,7 +94,7 @@ export function UserSelect({
   value,
   onChange,
   users,
-  placeholder = "Unassigned",
+  placeholder = "",
   disabled,
   className,
 }: {
@@ -112,10 +112,10 @@ export function UserSelect({
       onValueChange={(v) => onChange(v === NONE ? null : v)}
       disabled={disabled ?? false}
     >
-      <SelectTrigger className={cn("w-full min-w-0 bg-white", className)}>
+      <SelectTrigger className={cn("w-full min-w-0 bg-surface text-foreground", className)}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="manage-theme">
         <SelectItem value={NONE}>
           <span className="inline-flex items-center gap-2 text-muted-foreground">
             <Avatar user={null} size="xs" withTitle={false} />
@@ -136,7 +136,7 @@ export function UserSelect({
 }
 
 export const inputClass =
-  "h-10 w-full rounded-lg border border-input bg-white px-3 text-sm shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60";
+  "h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm font-medium text-foreground shadow-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60";
 
 export function errorMessage(err: unknown, fallback = "Something went wrong."): string {
   if (err && typeof err === "object" && "message" in err) {

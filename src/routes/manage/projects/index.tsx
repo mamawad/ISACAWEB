@@ -255,7 +255,7 @@ function CreateProjectDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="manage-theme max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <form onSubmit={submit}>
           <DialogHeader>
             <DialogTitle className="font-display">New project</DialogTitle>
@@ -273,7 +273,6 @@ function CreateProjectDialog({
                   setName(e.target.value);
                   if (!keyTouched) setKey(suggestKey(e.target.value));
                 }}
-                placeholder="Public Relations"
                 autoFocus
                 required
               />
@@ -292,7 +291,6 @@ function CreateProjectDialog({
                         .slice(0, 6),
                     );
                   }}
-                  placeholder="PR"
                   required
                 />
               </Field>
@@ -302,7 +300,6 @@ function CreateProjectDialog({
                     value={leadId}
                     onChange={setLeadId}
                     users={members}
-                    placeholder="You"
                   />
                 ) : (
                   <p className="flex h-10 items-center text-sm text-muted-foreground">You</p>
@@ -314,7 +311,6 @@ function CreateProjectDialog({
                 className={cn(inputClass, "h-20 resize-none py-2")}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="What is this project for?"
               />
             </Field>
             <Field label="Colour">

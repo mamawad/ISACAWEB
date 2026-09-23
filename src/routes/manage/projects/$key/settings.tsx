@@ -150,7 +150,6 @@ function SettingsPage() {
               value={leadId}
               onChange={setLeadId}
               users={members.map((m) => m.user)}
-              placeholder="No lead"
             />
           </Field>
           <Field label="Colour">
@@ -228,7 +227,6 @@ function SettingsPage() {
               value={addUser}
               onChange={setAddUser}
               users={addable}
-              placeholder="Choose a member"
             />
             <SelectField
               value={addAccess}
@@ -293,7 +291,7 @@ function SettingsPage() {
       </div>
 
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <AlertDialogContent>
+        <AlertDialogContent className="manage-theme">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {project.name}?</AlertDialogTitle>
             <AlertDialogDescription>
