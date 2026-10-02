@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ArrowRight, ArrowUpRight, CalendarCheck, type LucideIcon } from "lucide-react";
+import { ArrowRight, CalendarCheck } from "lucide-react";
 
 import { PageHero } from "@/components/fx/page-hero";
 import { Reveal } from "@/components/fx/reveal";
-import { TiltCard } from "@/components/fx/tilt-card";
 import { GhostCta, PrimaryCta } from "@/components/fx/cta";
-import { Orb3D } from "@/components/three/orb-3d";
+import { Photo } from "@/components/fx/photo";
 import { TEAMS, type Role } from "@/lib/teams";
 import { FALLBACK_TEAM_ICON, TEAM_ICONS } from "@/lib/team-icons";
 import { SITE } from "@/lib/site";
@@ -55,36 +54,29 @@ function ApplyLink({ team, role }: { team: string; role: string }) {
   );
 }
 
-function DirectorCard({ role, team, Icon }: { role: Role; team: string; Icon: LucideIcon }) {
+function DirectorCard({ role, team }: { role: Role; team: string }) {
   return (
-    <TiltCard className="card-glow flex h-full flex-col p-7">
-      <div className="flex items-start justify-between gap-4">
-        <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand-teal/12 text-brand-teal ring-1 ring-brand-teal/20">
-          <Icon className="h-5 w-5" />
-        </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-teal/30 bg-brand-teal/10 px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-brand-teal uppercase">
-          <CalendarCheck className="h-3 w-3" />
-          Leadership
-        </span>
-      </div>
-      <h3 className="mt-5 font-display text-lg leading-snug font-bold">{role.title}</h3>
+    <article className="panel flex h-full flex-col p-7">
+      <h4 className="font-display text-xl leading-snug font-bold tracking-[-0.02em]">
+        {role.title}
+      </h4>
       <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
         {role.responsibility}
       </p>
       <ApplyLink team={team} role={role.title} />
-    </TiltCard>
+    </article>
   );
 }
 
 function MemberCard({ role, team }: { role: Role; team: string }) {
   return (
-    <TiltCard className="card-glow flex h-full flex-col p-5" max={6}>
-      <h3 className="font-display text-base leading-snug font-semibold">{role.title}</h3>
+    <article className="panel flex h-full flex-col p-6">
+      <h4 className="font-display text-base leading-snug font-semibold">{role.title}</h4>
       <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
         {role.responsibility}
       </p>
       <ApplyLink team={team} role={role.title} />
-    </TiltCard>
+    </article>
   );
 }
 
@@ -105,28 +97,30 @@ function TeamPage() {
 
   const team = TEAMS[index];
   if (!team) return null;
-  const Icon = TEAM_ICONS[team.title] ?? FALLBACK_TEAM_ICON;
   const totalRoles = TEAMS.reduce((n, t) => n + t.directors.length + t.members.length, 0);
 
   return (
     <>
       <PageHero
-        eyebrow="Team"
         title={
           <>
-            The teams <span className="text-gradient">behind the chapter</span>
+            The teams <span className="text-brand-teal">behind the chapter</span>
           </>
         }
         lead="We are building the founding team. Every role listed below is open. If a path fits you, join the chapter and let us know."
         aside={
-          <div className="relative aspect-square">
-            <Orb3D />
-          </div>
+          <Photo
+            name="audience"
+            alt="Students seated in the auditorium during the chapter's opening event."
+            sizes="(min-width: 1024px) 480px, 100vw"
+            className="aspect-[3/2]"
+            priority
+          />
         }
       >
-        <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
-          <span className="h-1.5 w-1.5 rounded-full bg-brand-green" />
-          {TEAMS.length} teams · {totalRoles} open roles
+        <p className="tabular inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <span className="h-1.5 w-1.5 rounded-full bg-brand-green" aria-hidden="true" />
+          {TEAMS.length} teams, {totalRoles} open roles
         </p>
       </PageHero>
 
@@ -187,42 +181,36 @@ function TeamPage() {
           >
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div className="max-w-2xl">
-                <p className="eyebrow">
-                  Team {index + 1} of {TEAMS.length}
-                </p>
-                <h2 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+                <h2 className="font-display text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
                   {team.title}
                 </h2>
                 <p className="mt-3 text-base leading-relaxed text-muted-foreground sm:text-lg">
                   {team.description}
                 </p>
               </div>
-              <p className="font-mono text-xs tracking-[0.18em] text-muted-foreground uppercase">
+              <p className="tabular text-sm font-medium text-muted-foreground">
                 {team.directors.length + team.members.length} open roles
               </p>
             </div>
 
             {/* Leadership */}
             <div className="mt-10 flex items-center gap-4">
-              <span className="font-mono text-xs tracking-[0.2em] text-brand-teal uppercase">
-                Leadership
-              </span>
+              <h3 className="text-sm font-semibold text-brand-teal">Leadership</h3>
               <span className="h-px flex-1 bg-white/10" />
-              <span className="hidden text-xs text-muted-foreground sm:inline">
+              <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:inline-flex">
+                <CalendarCheck className="h-3.5 w-3.5 text-brand-teal" aria-hidden="true" />
                 Includes a short online chat
               </span>
             </div>
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
               {team.directors.map((role) => (
-                <DirectorCard key={role.title} role={role} team={team.title} Icon={Icon} />
+                <DirectorCard key={role.title} role={role} team={team.title} />
               ))}
             </div>
 
             {/* Members */}
             <div className="mt-12 flex items-center gap-4">
-              <span className="font-mono text-xs tracking-[0.2em] text-muted-foreground uppercase">
-                Members
-              </span>
+              <h3 className="text-sm font-semibold text-muted-foreground">Members</h3>
               <span className="h-px flex-1 bg-white/10" />
             </div>
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -237,14 +225,9 @@ function TeamPage() {
       {/* CTA */}
       <section className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6 md:pb-32">
         <Reveal>
-          <div className="card-glow relative overflow-hidden p-8 text-center sm:p-12">
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_50%_120%,color-mix(in_oklab,var(--brand-blue)_22%,transparent),transparent_70%)]"
-            />
+          <div className="panel relative overflow-hidden p-8 text-center sm:p-12">
             <div className="relative">
-              <p className="eyebrow">Not sure where you fit?</p>
-              <h2 className="mx-auto mt-3 max-w-xl font-display text-3xl font-bold tracking-tight text-balance sm:text-4xl">
+              <h2 className="mx-auto max-w-xl font-display text-3xl font-bold tracking-[-0.03em] text-balance sm:text-4xl">
                 Join first. Pick a team once you have met everyone.
               </h2>
               <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-muted-foreground">
@@ -252,10 +235,7 @@ function TeamPage() {
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <PrimaryCta to="/join">Join the chapter</PrimaryCta>
-                <GhostCta to="/events" icon={false}>
-                  See what we are planning
-                  <ArrowUpRight className="h-4 w-4" />
-                </GhostCta>
+                <GhostCta to="/events">See what we are planning</GhostCta>
               </div>
             </div>
           </div>

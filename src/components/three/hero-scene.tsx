@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, type RefObject } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { AdaptiveDpr, Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 import type { Pointer } from "./use-scene";
@@ -129,8 +129,6 @@ function Centerpiece({ pointer, scroll, onReady }: SceneProps) {
   const orbit = useRef<THREE.Group>(null);
   const orbit2 = useRef<THREE.Mesh>(null);
   const halo = useRef<THREE.Mesh>(null);
-  const viewport = useThree((s) => s.viewport);
-  const wide = viewport.width > 7.5;
 
   useEffect(() => {
     onReady?.();
@@ -144,12 +142,10 @@ function Centerpiece({ pointer, scroll, onReady }: SceneProps) {
 
     const o = outer.current;
     if (o) {
-      // Desktop: mark sits to the right of the copy. Phones: below it.
-      const targetX = wide ? 1.55 : 0;
-      const targetY = (wide ? 0 : -1.25) - s * 1.6;
-      o.position.x = THREE.MathUtils.damp(o.position.x, targetX, 3, dt);
-      o.position.y = THREE.MathUtils.damp(o.position.y, targetY, 3, dt);
-      const sc = (wide ? 1 : 0.62) * (1 - s * 0.3);
+      // The canvas owns its own layout column, so the mark always sits at
+      // the centre of it; scrolling only lets it sink and shrink a little.
+      o.position.y = THREE.MathUtils.damp(o.position.y, -s * 1.2, 3, dt);
+      const sc = 1 - s * 0.25;
       o.scale.setScalar(THREE.MathUtils.damp(o.scale.x, sc, 3, dt));
     }
     const i = inner.current;
@@ -217,7 +213,7 @@ export default function HeroScene({ active, pointer, scroll, onReady }: HeroScen
       dpr={[1, 1.75]}
       frameloop={active ? "always" : "never"}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-      camera={{ position: [0, 0, 7], fov: 36 }}
+      camera={{ position: [0, 0, 9.5], fov: 36 }}
       style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
@@ -233,7 +229,7 @@ export default function HeroScene({ active, pointer, scroll, onReady }: HeroScen
       <Centerpiece pointer={pointer} scroll={scroll} onReady={onReady} />
       <Sparkles
         count={140}
-        scale={[11, 7, 5]}
+        scale={[8, 7, 4]}
         size={2.4}
         speed={0.3}
         opacity={0.55}

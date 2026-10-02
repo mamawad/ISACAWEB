@@ -25,9 +25,8 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 function NotFoundComponent() {
   return (
     <div className="relative mx-auto flex min-h-[80vh] w-full max-w-md flex-col items-center justify-center px-4 pt-24 text-center">
-      <p className="eyebrow">Error 404</p>
       <h1 className="mt-4 font-display text-8xl font-extrabold tracking-tight">
-        <span className="text-gradient">404</span>
+        <span className="text-brand-teal">404</span>
       </h1>
       <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
       <p className="mt-2 text-sm text-muted-foreground">
@@ -49,7 +48,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
   return (
     <div className="relative mx-auto flex min-h-[80vh] w-full max-w-md flex-col items-center justify-center px-4 pt-24 text-center">
-      <p className="eyebrow">Something went wrong</p>
       <h1 className="mt-4 font-display text-2xl font-bold tracking-tight text-foreground">
         This page did not load
       </h1>

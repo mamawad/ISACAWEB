@@ -9,7 +9,7 @@ function StaticLogo({ hidden }: { hidden: boolean }) {
   return (
     <div
       className={cn(
-        "absolute inset-0 flex items-center justify-center transition-opacity duration-700 md:justify-end md:pr-[9%]",
+        "absolute inset-0 flex items-center justify-center transition-opacity duration-700",
         hidden ? "opacity-0" : "opacity-100",
       )}
     >
@@ -29,7 +29,8 @@ function StaticLogo({ hidden }: { hidden: boolean }) {
 }
 
 /**
- * Full-bleed 3D backdrop for the homepage hero. Falls back to a floating
+ * 3D ISACA mark for the homepage hero. Fills its positioned parent, which
+ * owns the layout column, and fades softly at the edges. Falls back to a floating
  * logo when WebGL is unavailable or the user prefers reduced motion, and
  * pauses its render loop whenever it scrolls out of view.
  */
@@ -43,7 +44,11 @@ export function Hero3D({ className }: { className?: string | undefined }) {
   const onReady = useCallback(() => setReady(true), []);
 
   return (
-    <div ref={ref} aria-hidden="true" className={cn("absolute inset-0 overflow-hidden", className)}>
+    <div
+      ref={ref}
+      aria-hidden="true"
+      className={cn("hero-mark absolute inset-0 overflow-hidden", className)}
+    >
       <StaticLogo hidden={ready} />
       {support === "yes" ? (
         <div

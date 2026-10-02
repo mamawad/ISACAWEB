@@ -381,40 +381,6 @@
     }
   }
 
-  /* Mouse-tracking tilt (driven by TiltCard) */
-  .tilt {
-    position: relative;
-    transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-    transform-style: preserve-3d;
-    transition: transform 0.12s ease-out;
-    will-change: transform;
-  }
-  .tilt.is-resting {
-    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .tilt-glare {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    border-radius: inherit;
-    pointer-events: none;
-    background: radial-gradient(
-      480px circle at var(--gx, 50%) var(--gy, 50%),
-      oklch(1 0 0 / 13%),
-      transparent 62%
-    );
-    opacity: var(--glare, 0);
-    transition: opacity 0.35s;
-  }
-  @media (hover: none), (prefers-reduced-motion: reduce) {
-    .tilt {
-      transform: none !important;
-    }
-    .tilt-glare {
-      display: none;
-    }
-  }
-
   /* Infinite marquee */
   .marquee {
     overflow: hidden;
@@ -519,16 +485,6 @@
     .aurora > span {
       animation: none;
     }
-  }
-
-  /* Faint engineering grid, fading out at the edges */
-  .grid-lines {
-    background-image:
-      linear-gradient(to right, oklch(1 0 0 / 4%) 1px, transparent 1px),
-      linear-gradient(to bottom, oklch(1 0 0 / 4%) 1px, transparent 1px);
-    background-size: 56px 56px;
-    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 75%);
-    mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 75%);
   }
 }
 
@@ -701,13 +657,6 @@
   background: oklch(0 0 0 / 6%);
   border-color: oklch(0.55 0.22 292 / 50%);
 }
-.manage-theme .tilt-glare {
-  background: radial-gradient(
-    480px circle at var(--gx, 50%) var(--gy, 50%),
-    oklch(0.55 0.22 292 / 8%),
-    transparent 62%
-  );
-}
 .manage-theme ::-webkit-scrollbar-thumb {
   background: oklch(0 0 0 / 14%);
   border-color: var(--background);
@@ -744,4 +693,60 @@
     color-mix(in oklab, var(--brand-teal) 14%, transparent),
     transparent 65%
   );
+}
+
+/* ------------------------------------------------------------------
+ * Public site refinements (2026-10 polish). Scoped to classes the
+ * marketing pages use, so the /manage workspace is unaffected.
+ * ------------------------------------------------------------------ */
+
+@layer base {
+  html {
+    caret-color: var(--brand-teal);
+    accent-color: var(--brand-teal);
+  }
+  a {
+    text-underline-offset: 0.22em;
+    text-decoration-thickness: 1px;
+  }
+}
+
+/* A calm surface for cards on the public pages: no glow, no tilt. */
+.panel {
+  border-radius: var(--radius-2xl);
+  background: color-mix(in oklab, var(--surface) 88%, transparent);
+  border: 1px solid oklch(1 0 0 / 8%);
+  box-shadow:
+    0 1px 0 oklch(1 0 0 / 4%) inset,
+    0 24px 48px -32px oklch(0 0 0 / 70%);
+  transition:
+    border-color 0.3s,
+    background-color 0.3s;
+}
+a.panel:hover,
+.panel-link:hover {
+  border-color: color-mix(in oklab, var(--brand-teal) 45%, transparent);
+  background: color-mix(in oklab, var(--surface-2) 80%, transparent);
+}
+
+/* Photography frame: soft depth, hairline edge, warm light kept honest. */
+.photo-frame {
+  border-radius: 28px;
+  background: var(--surface);
+  box-shadow:
+    0 0 0 1px oklch(1 0 0 / 8%),
+    0 40px 80px -40px oklch(0 0 0 / 80%);
+}
+.photo-frame img {
+  display: block;
+}
+
+/* The 3D mark's column fades out at its edges instead of clipping hard. */
+.hero-mark {
+  -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent);
+  mask-image: radial-gradient(closest-side, #000 72%, transparent);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }

@@ -3,30 +3,29 @@ import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 type PageHeroProps = {
-  eyebrow: string;
   title: ReactNode;
   lead?: ReactNode;
-  /** Optional visual for the right-hand column (e.g. an Orb3D). */
+  /** Visual for the right-hand column; stacks under the copy on small screens. */
   aside?: ReactNode;
   children?: ReactNode;
   className?: string | undefined;
 };
 
-const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-/** Shared inner-page header: aurora backdrop, grid, staggered title reveal. */
-export function PageHero({ eyebrow, title, lead, aside, children, className }: PageHeroProps) {
+/** Shared inner-page header: aurora backdrop, grid, and a settling title. */
+export function PageHero({ title, lead, aside, children, className }: PageHeroProps) {
   const reduce = useReducedMotion();
-  const rise = (delay: number) => ({
-    initial: reduce ? false : { opacity: 0, y: 26 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.8, delay, ease: EASE },
+  const settle = (delay: number) => ({
+    initial: reduce ? false : { y: 18 },
+    animate: { y: 0 },
+    transition: { duration: 1, delay, ease: EASE },
   });
 
   return (
     <section
       className={cn(
-        "relative overflow-hidden border-b border-white/5 pt-36 pb-16 sm:pt-40 sm:pb-20 md:pt-44 md:pb-24",
+        "relative overflow-hidden border-b border-white/5 pt-32 pb-16 sm:pt-36 sm:pb-20 md:pt-40 md:pb-24",
         className,
       )}
     >
@@ -35,42 +34,37 @@ export function PageHero({ eyebrow, title, lead, aside, children, className }: P
         <span />
         <span />
       </div>
-      <div className="grid-lines absolute inset-0" aria-hidden="true" />
-      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-10 px-4 sm:px-6 md:grid-cols-[1.2fr_0.8fr]">
+      <div
+        className={cn(
+          "relative mx-auto grid w-full max-w-6xl items-center gap-12 px-4 sm:px-6",
+          aside && "lg:grid-cols-[1.1fr_0.9fr] lg:gap-14",
+        )}
+      >
         <div>
-          <motion.p className="eyebrow" {...rise(0)}>
-            {eyebrow}
-          </motion.p>
           <motion.h1
-            className="mt-5 max-w-3xl font-display text-4xl font-extrabold leading-[1.02] tracking-tight text-balance text-foreground sm:text-5xl md:text-6xl"
-            {...rise(0.08)}
+            className={cn(
+              "max-w-3xl font-display text-[2.6rem] leading-[1.02] font-extrabold tracking-[-0.035em] text-balance text-foreground sm:text-6xl md:text-[4.25rem]",
+              aside && "lg:text-[3.5rem] xl:text-[3.9rem]",
+            )}
+            {...settle(0)}
           >
             {title}
           </motion.h1>
           {lead ? (
             <motion.p
-              className="mt-6 max-w-2xl text-lg leading-relaxed text-pretty text-muted-foreground sm:text-xl"
-              {...rise(0.16)}
+              className="mt-6 max-w-[38rem] text-lg leading-relaxed text-pretty text-muted-foreground sm:text-xl"
+              {...settle(0.06)}
             >
               {lead}
             </motion.p>
           ) : null}
           {children ? (
-            <motion.div className="mt-8" {...rise(0.24)}>
+            <motion.div className="mt-8" {...settle(0.12)}>
               {children}
             </motion.div>
           ) : null}
         </div>
-        {aside ? (
-          <motion.div
-            className="relative hidden md:block"
-            initial={reduce ? false : { opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, delay: 0.2, ease: EASE }}
-          >
-            {aside}
-          </motion.div>
-        ) : null}
+        {aside ? <div className="relative">{aside}</div> : null}
       </div>
     </section>
   );

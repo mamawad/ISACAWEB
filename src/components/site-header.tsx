@@ -25,9 +25,7 @@ function Wordmark({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
       </span>
       <span className="flex flex-col leading-none">
         <span className="font-display text-sm font-bold tracking-tight text-foreground">ISACA</span>
-        <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          Alfaisal Chapter
-        </span>
+        <span className="mt-1 text-[11px] font-medium text-muted-foreground">Alfaisal Chapter</span>
       </span>
     </Link>
   );
@@ -151,7 +149,7 @@ export function SiteHeader() {
                   </SheetClose>
                 </div>
                 <div className="mt-10 border-t border-white/10 pt-6">
-                  <p className="eyebrow">Follow</p>
+                  <h2 className="text-sm font-semibold text-foreground">Follow</h2>
                   <ul className="mt-3 flex flex-col gap-2">
                     {SITE.socials.map((s) => (
                       <li key={s.label}>

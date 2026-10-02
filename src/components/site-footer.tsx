@@ -69,7 +69,7 @@ export function SiteFooter() {
         </div>
 
         <div>
-          <p className="eyebrow">Explore</p>
+          <h2 className="text-sm font-semibold text-foreground">Explore</h2>
           <ul className="mt-4 flex flex-col gap-2.5">
             {LINKS.map((l) => (
               <li key={l.to}>
@@ -85,7 +85,7 @@ export function SiteFooter() {
         </div>
 
         <div>
-          <p className="eyebrow">Connect</p>
+          <h2 className="text-sm font-semibold text-foreground">Connect</h2>
           <ul className="mt-4 flex flex-col gap-2.5 text-sm font-medium text-muted-foreground">
             <li>
               <a
@@ -127,7 +127,7 @@ export function SiteFooter() {
           <p>
             © {new Date().getFullYear()} {SITE.name}.
           </p>
-          <p className="font-mono uppercase tracking-[0.18em]">Riyadh · Saudi Arabia</p>
+          <p>Riyadh, Saudi Arabia</p>
         </div>
       </div>
     </footer>

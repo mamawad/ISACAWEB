@@ -303,16 +303,15 @@ function JoinPage() {
   return (
     <>
       <PageHero
-        eyebrow="Join Us"
         title={
           <>
-            Become a <span className="text-gradient">member</span>
+            Become a <span className="text-brand-teal">member</span>
           </>
         }
         lead="Open to any Alfaisal student interested in IT governance, risk, cybersecurity, and audit. Fill out the form and we will be in touch."
         className="pb-10 sm:pb-12 md:pb-14"
       >
-        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground/80">
+        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
           Joining the Alfaisal chapter is how you get into the student community here. You can also
           join the wider{" "}
           <a
@@ -332,18 +331,16 @@ function JoinPage() {
           {/* Sidebar */}
           <aside className="lg:sticky lg:top-28 lg:self-start">
             <Reveal>
-              <p className="eyebrow">What you get</p>
-              <ul className="mt-4 flex flex-col gap-3">
+              <h2 className="font-display text-xl font-bold tracking-[-0.02em]">What you get</h2>
+              <ul className="mt-2">
                 {MEMBER_BENEFITS.map(({ icon: Icon, title, description }) => (
                   <li
                     key={title}
-                    className="flex gap-4 rounded-2xl border border-white/8 bg-white/[0.03] p-4"
+                    className="flex gap-4 border-b border-white/10 py-5 last:border-b-0"
                   >
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-teal/12 text-brand-teal ring-1 ring-brand-teal/20">
-                      <Icon className="h-5 w-5" />
-                    </div>
+                    <Icon className="mt-0.5 h-5 w-5 shrink-0 text-brand-teal" aria-hidden="true" />
                     <div>
-                      <h3 className="font-display text-sm font-semibold">{title}</h3>
+                      <h3 className="font-display text-base font-semibold">{title}</h3>
                       <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                         {description}
                       </p>
@@ -354,7 +351,7 @@ function JoinPage() {
             </Reveal>
 
             <Reveal delay={0.1} className="mt-10">
-              <p className="eyebrow">Questions</p>
+              <h2 className="font-display text-xl font-bold tracking-[-0.02em]">Questions</h2>
               <Accordion type="single" collapsible className="mt-2">
                 {FAQ.map((item, i) => (
                   <AccordionItem key={item.q} value={`faq-${i}`} className="border-white/10">
@@ -373,7 +370,7 @@ function JoinPage() {
           {/* Form */}
           <Reveal delay={0.05}>
             {done ? (
-              <div className="glass-strong rounded-3xl p-8 text-center sm:p-12">
+              <div className="panel p-8 text-center sm:p-12">
                 <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-linear-to-br from-brand-teal to-brand-green text-navy-deep shadow-lg shadow-brand-teal/30">
                   <CheckCircle2 className="h-8 w-8" />
                 </div>
@@ -405,16 +402,15 @@ function JoinPage() {
                 </div>
               </div>
             ) : (
-              <form onSubmit={onSubmit} className="glass-strong rounded-3xl p-6 sm:p-8" noValidate>
+              <form onSubmit={onSubmit} className="panel p-6 sm:p-8" noValidate>
                 <div className="mb-7 flex items-start justify-between gap-4 border-b border-white/10 pb-6">
                   <div>
-                    <p className="eyebrow">Application</p>
-                    <h2 className="mt-1 font-display text-xl font-bold sm:text-2xl">
+                    <h2 className="font-display text-xl font-bold tracking-[-0.02em] sm:text-2xl">
                       Membership form
                     </h2>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="font-mono text-xs text-muted-foreground">
+                    <p className="tabular text-xs font-medium text-muted-foreground">
                       {filled}/{required.length} required
                     </p>
                     <div className="mt-2 h-1.5 w-28 overflow-hidden rounded-full bg-white/10">
@@ -573,7 +569,7 @@ function JoinPage() {
                   </Field>
 
                   <div className="mt-2 flex items-center gap-4">
-                    <span className="font-mono text-[11px] tracking-[0.2em] text-brand-teal uppercase">
+                    <span className="text-sm font-semibold text-brand-teal">
                       Your place in the team
                     </span>
                     <span className="h-px flex-1 bg-white/10" />
@@ -654,7 +650,7 @@ function JoinPage() {
                         <h3 className="font-display text-base font-semibold">
                           Pick your interview slot
                         </h3>
-                        <span className="font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
+                        <span className="text-xs font-medium text-muted-foreground">
                           Online · Riyadh (GMT+3) · closes Sep 30
                         </span>
                       </div>
