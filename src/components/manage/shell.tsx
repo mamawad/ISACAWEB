@@ -36,8 +36,6 @@ import { INTERVIEW_TRACKS } from "@/lib/pm/interview-teams";
 import { useCan, useManage } from "./manage-context";
 import { Avatar } from "./avatar";
 import { CommandPalette } from "./command-palette";
-import { NationalDayRibbon } from "@/components/national-day/ribbon";
-import { useNationalDay } from "@/components/national-day/use-national-day";
 
 type NavItem = { to: string; label: string; icon: LucideIcon; exact?: boolean; show?: boolean };
 
@@ -316,7 +314,6 @@ export function ManageShell({ children }: { children: ReactNode }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const reduce = useReducedMotion();
-  const { active: nationalDay } = useNationalDay();
 
   const sidebar = (onNavigate?: () => void) => (
     <div className="flex h-full flex-col">
@@ -343,7 +340,6 @@ export function ManageShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {nationalDay ? <NationalDayRibbon compact /> : null}
         <ImpersonationBanner />
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-black/5 bg-background/80 px-4 backdrop-blur-md sm:px-6">
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>

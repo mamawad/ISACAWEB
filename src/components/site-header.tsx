@@ -5,8 +5,6 @@ import { ArrowUpRight, Menu } from "lucide-react";
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { SITE } from "@/lib/site";
-import { NationalDayRibbon } from "@/components/national-day/ribbon";
-import { useNationalDay } from "@/components/national-day/use-national-day";
 
 const NAV = [
   { to: "/mission", label: "Mission" },
@@ -90,7 +88,6 @@ export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
   const reduce = useReducedMotion();
-  const { active: nationalDay } = useNationalDay();
 
   useMotionValueEvent(scrollY, "change", (y) => {
     const prev = scrollY.getPrevious() ?? 0;
@@ -101,11 +98,10 @@ export function SiteHeader() {
   return (
     <motion.header
       initial={false}
-      animate={{ y: hidden ? (nationalDay ? -140 : -100) : 0 }}
+      animate={{ y: hidden ? -100 : 0 }}
       transition={{ duration: reduce ? 0 : 0.35, ease: [0.22, 1, 0.36, 1] }}
       className="fixed inset-x-0 top-0 z-40 flex flex-col items-center"
     >
-      {nationalDay ? <NationalDayRibbon className="w-full" /> : null}
       <div className="flex w-full justify-center px-4 pt-4 sm:px-6">
         <div
           className={cn(

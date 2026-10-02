@@ -33,13 +33,7 @@ function StaticLogo({ hidden }: { hidden: boolean }) {
  * logo when WebGL is unavailable or the user prefers reduced motion, and
  * pauses its render loop whenever it scrolls out of view.
  */
-export function Hero3D({
-  className,
-  festive = false,
-}: {
-  className?: string | undefined;
-  festive?: boolean;
-}) {
+export function Hero3D({ className }: { className?: string | undefined }) {
   const ref = useRef<HTMLDivElement>(null);
   const support = useCanRender3D();
   const visible = useInViewport(ref);
@@ -59,13 +53,7 @@ export function Hero3D({
           )}
         >
           <Suspense fallback={null}>
-            <HeroScene
-              active={visible}
-              pointer={pointer}
-              scroll={scroll}
-              onReady={onReady}
-              festive={festive}
-            />
+            <HeroScene active={visible} pointer={pointer} scroll={scroll} onReady={onReady} />
           </Suspense>
         </div>
       ) : null}
