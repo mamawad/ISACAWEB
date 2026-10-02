@@ -40,7 +40,7 @@ export const Route = createFileRoute("/")({
           "A student community at Alfaisal University for IT governance, risk, cybersecurity, and audit. Join the chapter.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "/photos/opening/stage-1600.webp" },
+      { property: "og:image", content: "/photos/opening/stage-og.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
@@ -247,7 +247,7 @@ function OpeningNight() {
             className="aspect-[3/2] lg:aspect-auto lg:min-h-[26rem] lg:flex-1"
           />
           <p className="mt-4 text-sm text-muted-foreground">
-            Opening night of the chapter, Alfaisal University.
+            The chapter's opening event at Alfaisal University.
           </p>
         </div>
 
@@ -257,7 +257,7 @@ function OpeningNight() {
               Not a club. A branch of a global professional body.
             </h2>
             <p className="mt-5 text-base leading-relaxed text-pretty text-muted-foreground sm:text-lg">
-              That was the opening line when the chapter launched at Alfaisal. ISACA is the
+              That was the message at the chapter's opening event at Alfaisal. ISACA is the
               professional body behind CISA and CISM, and this chapter is how students here plug
               into it.
             </p>

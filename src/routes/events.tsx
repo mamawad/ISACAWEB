@@ -100,7 +100,7 @@ function EventsPage() {
               priority
             />
             <p className="mt-4 text-sm text-muted-foreground">
-              It started on opening night. Everything below is what comes next.
+              It started at the chapter's opening event. Everything below is what comes next.
             </p>
           </div>
         }
